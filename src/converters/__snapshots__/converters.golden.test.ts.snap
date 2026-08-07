@@ -1,0 +1,252 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`advanced processor golden output > keeps Advanced Finance HTML output stable 1`] = `
+"<table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="max-width:100%;">
+  <tr>
+    <td align="center" valign="top">
+      <table class="primary-table-limit content-table" bgcolor="#ffffff" border="0" cellspacing="0" cellpadding="0" role="presentation" width="100%" style="max-width:600px;">
+        <tr>
+          <td class="content-vertical-space" align="center" style="padding-left:20px;padding-right:20px;">
+            <table class="content-inner-table" border="0" cellspacing="0" role="presentation" cellpadding="0" width="100%" style="width:100%;">
+              <tr><td height="16" width="100%" style="max-width:100%" class="md-horizontal-space">&#160;</td></tr>
+              <tr>
+                <td align="left"
+                  style="font-family:'Roboto', Arial, Helvetica, sans-serif;font-size:18px;font-style:normal;font-weight:normal;line-height:1.5;text-align:left;color:#000000; padding-top:14px;padding-bottom:14px;">
+                  <span style="font-family:'Roboto', Arial, Helvetica, sans-serif;font-size:18px;font-style:normal;font-weight:normal;line-height:1.5;text-align:left;color:#000000;">
+                    <b>Campaign headline</b>
+                    <br><br>
+                    Body copy with a price of &#36;42 and a short explanation.
+                    <br><br>
+                    <span style="color:#0000ff;">Call to action</span>
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td class="img-bg-block" align="center" style="padding-top:14px;padding-bottom:14px;">
+                  <a href="urlhere" target="_blank">
+                    <img alt="Dashboard preview" height="auto" src="https://storage.5th-elementagency.com/files/Promo/finance/ab/lift-12/img-1.jpg" width="560"
+                      style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;max-width:560px;font-size:13px;"/>
+                  </a>
+                </td>
+              </tr>
+              <tr><td height="16" width="100%" style="max-width:100%" class="md-horizontal-space">&#160;</td></tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>"
+`;
+
+exports[`legacy processor golden output > keeps Alpha HTML output stable 1`] = `
+"<table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="max-width: 100%;">
+  <tr>
+    <td align="center" valign="top">
+      <table class="primary-table-wrapper" bgcolor="#FFFFFF" border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%" style="max-width: 600px;">
+        <tr>
+          <td class="content-space-main-wrapper" align="center" style="padding-top: 14px; padding-left: 19px; padding-bottom: 14px; padding-right: 19px;">
+            <table class="content-inner-table" border="0" cellspacing="0" role="presentation" cellpadding="0" width="100%" style="width: 100%;">
+              <tr>
+                <td style="font-family:Verdana, Geneva, Tahoma, sans-serif;font-size:18px;font-style:normal;font-weight:normal;line-height:1.5;text-align:left;color:#000000;padding-top: 16px; padding-bottom: 16px;">
+                  <div style="font-family:Verdana, Geneva, Tahoma, sans-serif;font-size:18px;font-style:normal;font-weight:normal;line-height:1.5;text-align:left;color:#000000;">
+                    Campaign headline
+                    <br><br>
+
+                    Body copy with a price of &#36;42 and a short explanation.
+                    <br><br>
+
+                    <a href="urlhere" style="font-family:Verdana, Geneva, Tahoma, sans-serif;font-weight: 700;color: #0404e4;text-decoration: underline;">Call to action</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td class="image-full-wrapper" align="center" style="padding-top: 16px; padding-bottom: 16px;">
+                  <a href="urlhere" target="_blank"><img alt="Dashboard preview" height="auto" src="https://alphaonest.com/files/promo/ab/lift-12/img-1.jpg" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;max-width: 562px;font-size:13px;" width="562" /></a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>"
+`;
+
+exports[`legacy processor golden output > keeps Finance HTML output stable 1`] = `
+"<table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="max-width: 100%;">
+  <tr>
+    <td align="center" valign="top">
+      <table class="primary-table-limit content-table" bgcolor="#FFFFFF" border="0" cellspacing="0" cellpadding="0" role="presentation" width="100%" style="max-width: 600px;">
+        <tr>
+          <td class="content-vertical-space" align="center" style="padding-left: 20px; padding-right: 20px;">
+            <table class="content-inner-table" border="0" cellspacing="0" role="presentation" cellpadding="0" width="100%" style="width: 100%;">
+              <tr>
+                <td height="16" width="100%" style="max-width: 100%" class="md-horizontal-space"></td>
+              </tr>
+              <tr>
+                <td style="font-family:'Roboto', Arial, Helvetica, sans-serif;font-size:18px;font-style:normal;font-weight:normal;line-height:1.5;text-align:left;color:#000000;padding-top: 14px; padding-bottom: 14px;">
+                  <span style="font-family:'Roboto', Arial, Helvetica, sans-serif;font-size:18px;font-style:normal;font-weight:normal;line-height:1.5;text-align:left;color:#000000;">
+                    Campaign headline
+                    <br><br>
+
+                    Body copy with a price of &#36;42 and a short explanation.
+                    <br><br>
+
+                    <a href="urlhere" style="font-family:'Roboto', Arial, Helvetica, sans-serif;text-decoration: underline;font-weight: 700; color: #0000EE;">Call to action</a>
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td class="img-bg-block" align="center" style="padding-top: 14px; padding-bottom: 14px;">
+                  <a href="urlhere" target="_blank"><img alt="Dashboard preview" height="auto" src="https://storage.5th-elementagency.com/files/Promo/finance/ab/lift-12/img-1.jpg" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;max-width: 560px;font-size:13px;" width="560" /></a>
+                </td>
+              </tr>
+
+              <tr>
+                <td height="16" width="100%" style="max-width: 100%" class="md-horizontal-space"></td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>"
+`;
+
+exports[`legacy processor golden output > keeps Finance MJML output stable 1`] = `
+"<div style="background-color:#FFFFFF;">
+  <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:600px;" width="600"><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+  <div style="margin:0px auto;max-width:600px;">
+    <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+      <tbody>
+        <tr>
+          <td style="direction:ltr;font-size:0px;padding:20px 0;text-align:center;">
+            <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td style="vertical-align:top;width:600px;"><![endif]-->
+            <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+              <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                <tbody>
+                  <tr>
+                    <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                      <div style="font-family:'Roboto', Arial, Helvetica, sans-serif;font-size:18px;font-style:normal;font-weight:normal;line-height:1.5;text-align:left;color:#000000;">
+                        Campaign headline
+                        <br><br>
+
+                        Body copy with a price of &#36;42 and a short explanation.
+                        <br><br>
+
+                        <a href="urlhere" style="font-family:'Roboto', Arial, Helvetica, sans-serif;text-decoration: underline;font-weight: 700; color: #0000EE;">Call to action</a>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                      <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">
+                        <tbody>
+                          <tr>
+                            <td style="width:550px;">
+                              <a href="urlhere" target="_blank"><img alt="Dashboard preview" src="https://storage.5th-elementagency.com/files/Promo/finance/ab/lift-12/img-1.jpg" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="550" height="auto" /></a>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <!--[if mso | IE]></td></tr></table><![endif]-->
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <!--[if mso | IE]></td></tr></table><![endif]-->
+</div>"
+`;
+
+exports[`legacy processor golden output > keeps Red HTML output stable 1`] = `
+"<table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="max-width: 100%;">
+  <tr>
+    <td align="center" valign="top">
+      <table class="layout-table-wrapper" bgcolor="#FFFFFF" border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%" style="max-width: 600px;">
+        <tr>
+          <td class="layout-content-wrapper" align="center" style="padding-left: 18px; padding-right: 18px;">
+            <table class="layout-inner-block" border="0" cellspacing="0" role="presentation" cellpadding="0" width="100%" style="width: 100%;">
+              <tr>
+                <td height="14" width="100%" style="max-width: 100%" class="section-gap"></td>
+              </tr>
+              <tr>
+                <td style="font-family:'Noto Sans', Arial, Helvetica, sans-serif;font-size:18px;font-style:normal;font-weight:normal;line-height:1.5;text-align:left;color:#000000;padding-top: 16px; padding-bottom: 16px;">
+                  <span style="font-family:'Noto Sans', Arial, Helvetica, sans-serif;font-size:18px;font-style:normal;font-weight:normal;line-height:1.5;text-align:left;color:#000000;">
+                    Campaign headline
+                    <br><br>
+
+                    Body copy with a price of &#36;42 and a short explanation.
+                    <br><br>
+
+                    <a href="urlhere" style="font-family:'Noto Sans', Arial, Helvetica, sans-serif;font-weight: 700;color: #0d0de3;text-decoration: underline;">Call to action</a>
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td class="full-img-block" align="center" style="padding-top: 16px; padding-bottom: 16px;">
+                  <a href="urlhere" target="_blank"><img alt="Dashboard preview" height="auto" src="https://reagstr.com/files/promo/ab/lift-12/img-1.jpg" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;max-width: 564px;font-size:12px;" width="564" /></a>
+                </td>
+              </tr>
+
+              <tr>
+                <td height="14" width="100%" style="max-width: 100%" class="section-gap"></td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>"
+`;
+
+exports[`legacy processor golden output > keeps Terra HTML output stable 1`] = `
+"<table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="max-width: 100%;">
+  <tr>
+    <td align="center" valign="top">
+      <table class="main-table" bgcolor="#FFFFFF" border="0" cellspacing="0" cellpadding="0" role="presentation" width="100%" style="max-width: 600px;">
+        <tr>
+          <td class="content-wrapper" align="center" style="padding-left: 21px; padding-right: 21px;">
+            <table class="inner-content-wrapper" border="0" cellspacing="0" role="presentation" cellpadding="0" width="100%" style="width: 100%;">
+              <tr>
+                <td height="15" width="100%" style="max-width: 100%" class="space-between-sections"></td>
+              </tr>
+              <tr>
+                <td style="font-family:'Roboto', Arial, Helvetica, sans-serif;font-size:18px;font-style:normal;font-weight:normal;line-height:1.5;text-align:left;color:#000000;padding-top: 15px; padding-bottom: 15px;">
+                  <div style="font-family:'Roboto', Arial, Helvetica, sans-serif;font-size:18px;font-style:normal;font-weight:normal;line-height:1.5;text-align:left;color:#000000;">
+                    Campaign headline
+                    <br><br>
+
+                    Body copy with a price of &#36;42 and a short explanation.
+                    <br><br>
+
+                    <a href="urlhere" style="font-family:'Roboto', Arial, Helvetica, sans-serif;text-decoration: underline;font-weight: 700;color: #0000EE;">Call to action</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td class="image-block" align="center" style="padding-top: 15px; padding-bottom: 15px;">
+                  <a href="urlhere" target="_blank"><img alt="Dashboard preview" height="auto" src="https://ogfinstorage.com/files/creatives/ab/creative-12/img-1.jpg" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;max-width: 560px;font-size:13px;" width="560" /></a>
+                </td>
+              </tr>
+
+              <tr>
+                <td height="15" width="100%" style="max-width: 100%" class="space-between-sections"></td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>"
+`;
