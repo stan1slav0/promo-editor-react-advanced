@@ -146,7 +146,7 @@ export async function uploadImagesToS3(
       concurrency,
       async (image): Promise<'uploaded' | 'exists' | 'failed'> => {
         const apiPath = `${destination.folder}/${image.fileName}`
-        const originalUrl = `https://public.epcnetwork.dev/upload?parent=${destination.parent}&path=${apiPath}`
+        const originalUrl = `https://public.epcnetwork.dev/upload?parent=${destination.parent}&path=${apiPath}&overwrite=0`
         const apiUrl = `${API_PROXY_URL}/?url=${encodeURIComponent(originalUrl)}`
 
         try {
