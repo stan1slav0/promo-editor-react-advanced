@@ -14,7 +14,6 @@ import { useFormatterDownloads } from './hooks/useFormatterDownloads'
 import { useFormatterShortcuts } from './hooks/useFormatterShortcuts'
 import { useImageExport } from './hooks/useImageExport'
 import { useSyncedScroll } from './hooks/useSyncedScroll'
-import { getSavedMode, saveMode } from './model/storage'
 import type { FormatterConverter, FormatterMode, FormatterProps, ScrollableRef } from './model/types'
 
 export default function Formatter({
@@ -22,10 +21,11 @@ export default function Formatter({
   onCategoryChange,
   availableCategories = ['Finance', 'Health', 'Pets'],
   isS3Enabled,
+  mode,
+  onModeChange,
 }: FormatterProps) {
   const [fileName, setFileName] = useState('')
   const [editorContent, setEditorContent] = useState('')
-  const [mode, setMode] = useState<FormatterMode>(getSavedMode)
 
   const editorRef = useRef<HTMLDivElement>(null)
   const htmlOutputRef = useRef<HTMLTextAreaElement>(null)
@@ -63,8 +63,6 @@ export default function Formatter({
       activeConverter.categoryName = activeCategory
     }
   }, [activeCategory, activeConverter])
-
-  useEffect(() => saveMode(mode), [mode])
 
   useEffect(() => {
     if (isFirstS3RenderRef.current) {
@@ -129,12 +127,12 @@ export default function Formatter({
   }, [activeCategory, dismissS3Toast, onCategoryChange])
 
   const handleModeChange = useCallback((nextMode: FormatterMode) => {
-    setMode(nextMode)
+    onModeChange(nextMode)
     toast.info(
       <span><strong>{nextMode === 'basic' ? 'Basic' : nextMode === 'advanced' ? 'Custom' : 'Dates'}</strong> Mode</span>,
       { autoClose: 1500, hideProgressBar: true, closeButton: false },
     )
-  }, [])
+  }, [onModeChange])
 
   const handleEditorInput = useCallback((event: FormEvent<HTMLDivElement>) => {
     if (isAnalyzingRef.current) return

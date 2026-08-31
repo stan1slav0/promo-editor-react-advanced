@@ -3,9 +3,14 @@ import { useLocation } from 'react-router-dom'
 interface AppHeaderProps {
   isS3Enabled: boolean
   onS3ToggleChange: (checked: boolean) => void
+  hideStorageMode?: boolean
 }
 
-export default function AppHeader({ isS3Enabled, onS3ToggleChange }: AppHeaderProps) {
+export default function AppHeader({
+  isS3Enabled,
+  onS3ToggleChange,
+  hideStorageMode = false,
+}: AppHeaderProps) {
   const location = useLocation()
 
   const getSingleTab = () => {
@@ -43,32 +48,34 @@ export default function AppHeader({ isS3Enabled, onS3ToggleChange }: AppHeaderPr
           </div>
         </div>
 
-        <label className="test-toggle-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span className="switch" style={{ position: 'relative', display: 'inline-block', width: '46px', height: '24px', margin: 0 }}>
-            <input
-              type="checkbox"
-              id="s3UploadToggle"
-              checked={isS3Enabled}
-              onChange={(e) => onS3ToggleChange(e.target.checked)}
-              style={{ opacity: 0, width: 0, height: 0 }}
-            />
-            <span className="slider" style={{ border: isS3Enabled ? '1px solid #fff' : '1px solid #ccc' }}></span>
-          </span>
-
-          <span style={{ position: 'relative', overflow: 'hidden', height: '20px', display: 'flex', alignItems: 'center' }}>
-            <span
-              style={{
-                fontSize: '13px',
-                fontWeight: 600,
-                color: isS3Enabled ? '#d357d8' : '#75eaf6',
-                display: 'inline-block',
-                transition: 'color 0.2s ease, opacity 0.2s ease',
-              }}
-            >
-              {isS3Enabled ? 'Storage' : 'Desktop'}
+        {!hideStorageMode && (
+          <label className="test-toggle-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span className="switch" style={{ position: 'relative', display: 'inline-block', width: '46px', height: '24px', margin: 0 }}>
+              <input
+                type="checkbox"
+                id="s3UploadToggle"
+                checked={isS3Enabled}
+                onChange={(e) => onS3ToggleChange(e.target.checked)}
+                style={{ opacity: 0, width: 0, height: 0 }}
+              />
+              <span className="slider" style={{ border: isS3Enabled ? '1px solid #fff' : '1px solid #ccc' }}></span>
             </span>
-          </span>
-        </label>
+
+            <span style={{ position: 'relative', overflow: 'hidden', height: '20px', display: 'flex', alignItems: 'center' }}>
+              <span
+                style={{
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: isS3Enabled ? '#d357d8' : '#75eaf6',
+                  display: 'inline-block',
+                  transition: 'color 0.2s ease, opacity 0.2s ease',
+                }}
+              >
+                {isS3Enabled ? 'Storage' : 'Desktop'}
+              </span>
+            </span>
+          </label>
+        )}
       </div>
     </header>
   )

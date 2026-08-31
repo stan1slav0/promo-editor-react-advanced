@@ -9,6 +9,8 @@ export interface FormatterProps {
   onCategoryChange: (category: string) => void
   availableCategories?: string[]
   isS3Enabled: boolean
+  mode: FormatterMode
+  onModeChange: (mode: FormatterMode) => void
 }
 
 export type ScrollableElement = HTMLDivElement | HTMLTextAreaElement
