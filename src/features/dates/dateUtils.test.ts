@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { detectDates, getDateGroupName, normalizeDateKey, replaceDates } from './dateUtils'
+import { detectDates, getDateContexts, getDateGroupName, normalizeDateKey, replaceDates } from './dateUtils'
 
 describe('getDateGroupName', () => {
   it('groups HTML and MJML variants under the same promo name', () => {
@@ -28,6 +28,24 @@ describe('detectDates', () => {
 
   it('does not treat invalid month and day numbers as dates', () => {
     expect(detectDates('2026-19-44 and 44/19/2026')).toEqual([])
+  })
+})
+
+describe('getDateContexts', () => {
+  it('returns readable sentences and removes HTML tags around a date', () => {
+    const html = '<p>Your access remains active until <strong>September 19</strong>. Renew it today.</p>'
+
+    expect(getDateContexts(html, 'September 19')).toEqual([{
+      before: 'Your access remains active until ',
+      match: 'September 19',
+      after: '.',
+    }])
+  })
+
+  it('returns every visible occurrence separately', () => {
+    const html = '<div>Sale ends September 19.</div><div>Do not wait until September 19!</div>'
+
+    expect(getDateContexts(html, 'September 19')).toHaveLength(2)
   })
 })
 

@@ -1,13 +1,16 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { ChangeEvent, DragEvent } from 'react'
+import { createPortal } from 'react-dom'
 import { saveAs } from 'file-saver'
 import JSZip from 'jszip'
 import { toast } from 'react-toastify'
 import {
   detectDates,
+  getDateContexts,
   getDateGroupName,
   normalizeDateKey,
   replaceDates,
+  type DateContext,
   type DetectedDate,
 } from './dateUtils'
 
@@ -24,6 +27,7 @@ interface AnalyzedFile {
   groupName: string
   content: string
   dates: DetectedDate[]
+  dateContexts: Record<string, DateContext[]>
 }
 
 interface AggregatedDate {
@@ -133,11 +137,191 @@ async function readEntry(entry: FileSystemEntry): Promise<SelectedFile[]> {
   return (await Promise.all(entries.map(readEntry))).flat()
 }
 
+function DateContextSnippet({
+  context,
+  replacement,
+}: {
+  context: DateContext
+  replacement?: string
+}) {
+  return (
+    <span className="dates-context-snippet">
+      {context.before}<mark>{replacement || context.match}</mark>{context.after}
+    </span>
+  )
+}
+
+function DateFilesTooltip({
+  date,
+  files,
+  replacements,
+  groupOverrides,
+}: {
+  date: AggregatedDate
+  files: AnalyzedFile[]
+  replacements: Record<string, string>
+  groupOverrides: Record<string, Record<string, string>>
+}) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [position, setPosition] = useState<{ left: number; top: number; width: number } | null>(null)
+  const triggerRef = useRef<HTMLSpanElement>(null)
+  const closeTimerRef = useRef<number | null>(null)
+  const tooltipId = useId()
+  const matchingFiles = useMemo(
+    () => files.filter((file) => date.fileIds.has(file.id)),
+    [date.fileIds, files],
+  )
+  const matchingFileGroups = useMemo(() => {
+    const grouped = new Map<string, AnalyzedFile[]>()
+
+    for (const file of matchingFiles) {
+      const folderFiles = grouped.get(file.sourceFolder)
+      if (folderFiles) folderFiles.push(file)
+      else grouped.set(file.sourceFolder, [file])
+    }
+
+    return [...grouped.entries()]
+      .sort(([left], [right]) => naturalCompare(left, right))
+      .map(([folder, folderFiles]) => ({
+        folder,
+        label: folder.split('/').filter(Boolean).at(-1) || folder,
+        files: [...folderFiles].sort((left, right) => {
+          const leftVariant = getVariantLabel(left.name) === 'HTML' ? 0 : 1
+          const rightVariant = getVariantLabel(right.name) === 'HTML' ? 0 : 1
+          return leftVariant - rightVariant || naturalCompare(left.name, right.name)
+        }),
+      }))
+  }, [matchingFiles])
+
+  const cancelClose = useCallback(() => {
+    if (closeTimerRef.current === null) return
+    window.clearTimeout(closeTimerRef.current)
+    closeTimerRef.current = null
+  }, [])
+
+  const openTooltip = useCallback(() => {
+    cancelClose()
+    setIsOpen(true)
+  }, [cancelClose])
+
+  const scheduleClose = useCallback(() => {
+    cancelClose()
+    closeTimerRef.current = window.setTimeout(() => {
+      setIsOpen(false)
+      closeTimerRef.current = null
+    }, 180)
+  }, [cancelClose])
+
+  useEffect(() => cancelClose, [cancelClose])
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    const updatePosition = () => {
+      const trigger = triggerRef.current
+      if (!trigger) return
+      const rect = trigger.getBoundingClientRect()
+      const width = Math.min(480, window.innerWidth - 24)
+      const left = Math.min(
+        Math.max(12, rect.left + rect.width / 2 - width / 2),
+        window.innerWidth - width - 12,
+      )
+      setPosition({ left, top: rect.bottom + 10, width })
+    }
+
+    updatePosition()
+    window.addEventListener('resize', updatePosition)
+    window.addEventListener('scroll', updatePosition, true)
+    return () => {
+      window.removeEventListener('resize', updatePosition)
+      window.removeEventListener('scroll', updatePosition, true)
+    }
+  }, [isOpen])
+
+  return (
+    <>
+      <span
+        ref={triggerRef}
+        className="dates-files-tooltip-trigger"
+        tabIndex={0}
+        aria-describedby={isOpen ? tooltipId : undefined}
+        onMouseEnter={openTooltip}
+        onMouseLeave={scheduleClose}
+        onFocus={openTooltip}
+        onBlur={scheduleClose}
+      >
+        <small>{date.fileIds.size} {date.fileIds.size === 1 ? 'file' : 'files'}</small>
+      </span>
+      {isOpen && position && createPortal(
+        <div
+          id={tooltipId}
+          className="dates-files-popover"
+          role="tooltip"
+          style={{ left: position.left, top: position.top, width: position.width }}
+          onMouseEnter={openTooltip}
+          onMouseLeave={scheduleClose}
+        >
+          <div className="dates-files-popover__header">
+            <span>Found in {matchingFiles.length} {matchingFiles.length === 1 ? 'file' : 'files'}</span>
+            <small>{date.count} total occurrences</small>
+          </div>
+          <div className="dates-files-popover__list">
+            {matchingFileGroups.map((group) => (
+              <section className="dates-files-popover__group" key={group.folder}>
+                <div className="dates-files-popover__group-heading">
+                  <strong>{group.label}</strong>
+                  <small>{group.files.length} {group.files.length === 1 ? 'file' : 'files'}</small>
+                </div>
+                <div className="dates-files-popover__group-files">
+                  {group.files.map((file) => {
+                    const occurrenceCount = file.dates
+                      .filter((fileDate) => normalizeDateKey(fileDate.value) === date.key)
+                      .reduce((total, fileDate) => total + fileDate.count, 0)
+                    const contexts = file.dateContexts[date.key] ?? []
+                    const groupId = file.groupName.toLocaleLowerCase('en-US')
+                    const previewValue = groupOverrides[groupId]?.[date.key]
+                      || replacements[date.key]
+                      || date.displayValue
+                    return (
+                      <div className="dates-files-popover__file" key={file.id}>
+                        <span className={`dates-files-popover__type dates-files-popover__type_${getVariantLabel(file.name).toLowerCase()}`}>
+                          {getVariantLabel(file.name)}
+                        </span>
+                        <span className="dates-files-popover__copy">
+                          <strong>{file.name}</strong>
+                          <span className="dates-files-popover__contexts">
+                            {contexts.length > 0
+                              ? contexts.map((context, index) => (
+                                <DateContextSnippet
+                                  context={context}
+                                  key={`${context.match}-${index}`}
+                                  replacement={previewValue}
+                                />
+                              ))
+                              : <span className="dates-context-snippet dates-context-snippet_empty">Date found in HTML markup</span>}
+                          </span>
+                        </span>
+                        <span className="dates-files-popover__count">×{occurrenceCount}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </section>
+            ))}
+          </div>
+        </div>,
+        document.body,
+      )}
+    </>
+  )
+}
+
 export function DatesPanel() {
   const [files, setFiles] = useState<AnalyzedFile[]>([])
   const [replacements, setReplacements] = useState<Record<string, string>>({})
   const [groupOverrides, setGroupOverrides] = useState<Record<string, Record<string, string>>>({})
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
+  const [expandedSidebarGroups, setExpandedSidebarGroups] = useState<Record<string, boolean>>({})
   const [isDragging, setIsDragging] = useState(false)
   const [isPacking, setIsPacking] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -194,6 +378,15 @@ export function DatesPanel() {
       const analyzed = await Promise.all(htmlFiles.map(async ({ file, relativePath }, index) => {
         const content = await file.text()
         const normalizedPath = safeZipPath(relativePath) || file.name
+        const dates = detectDates(content)
+        const dateContexts: Record<string, DateContext[]> = {}
+        for (const date of dates) {
+          const key = normalizeDateKey(date.value)
+          dateContexts[key] = [
+            ...(dateContexts[key] ?? []),
+            ...getDateContexts(content, date.value),
+          ]
+        }
         return {
           id: `${normalizedPath}-${file.lastModified}-${file.size}-${index}`,
           name: file.name,
@@ -201,7 +394,8 @@ export function DatesPanel() {
           sourceFolder: getSourceFolder(normalizedPath),
           groupName: getDateGroupName(file.name),
           content,
-          dates: detectDates(content),
+          dates,
+          dateContexts,
         }
       }))
 
@@ -217,6 +411,7 @@ export function DatesPanel() {
       setReplacements(initialReplacements)
       setGroupOverrides({})
       setExpandedGroups({})
+      setExpandedSidebarGroups({})
       if (htmlFiles.length !== selectedFiles.length) {
         toast.info(`${selectedFiles.length - htmlFiles.length} non-HTML files skipped`)
       }
@@ -280,7 +475,8 @@ export function DatesPanel() {
     toast.success(`${group.files.length} updated ${group.files.length === 1 ? 'file' : 'files'} downloaded`)
   }
 
-  const downloadAllArchive = async () => {
+  const downloadAllArchive = useCallback(async () => {
+    if (isPacking || files.length === 0) return
     setIsPacking(true)
     try {
       const zip = new JSZip()
@@ -316,7 +512,7 @@ export function DatesPanel() {
     } finally {
       setIsPacking(false)
     }
-  }
+  }, [archiveBaseName, files, getUpdatedContent, groups, isPacking])
 
   const updateGroupOverride = (groupId: string, dateKey: string, value: string) => {
     setGroupOverrides((current) => ({
@@ -333,13 +529,28 @@ export function DatesPanel() {
     setReplacements({})
     setGroupOverrides({})
     setExpandedGroups({})
+    setExpandedSidebarGroups({})
   }, [])
 
   useEffect(() => {
-    const handleResetShortcut = (event: KeyboardEvent) => {
-      if (!(event.metaKey || event.ctrlKey) || event.shiftKey || event.key.toLowerCase() !== 'r') return
+    const handleShortcut = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey) || event.shiftKey) return
+      const key = event.key.toLowerCase()
+      if (key !== 'r' && key !== 's') return
+
       event.preventDefault()
       event.stopPropagation()
+
+      if (key === 's') {
+        if (files.length > 0) void downloadAllArchive()
+        else toast.info('Upload HTML folders before downloading', {
+          autoClose: 2000,
+          hideProgressBar: true,
+          closeButton: false,
+        })
+        return
+      }
+
       clearFiles()
       toast.info('All date files and replacements cleared', {
         autoClose: 2000,
@@ -348,9 +559,9 @@ export function DatesPanel() {
       })
     }
 
-    window.addEventListener('keydown', handleResetShortcut, true)
-    return () => window.removeEventListener('keydown', handleResetShortcut, true)
-  }, [clearFiles])
+    window.addEventListener('keydown', handleShortcut, true)
+    return () => window.removeEventListener('keydown', handleShortcut, true)
+  }, [clearFiles, downloadAllArchive, files.length])
 
   const removeFile = (fileId: string) => {
     setFiles((current) => current.filter((file) => file.id !== fileId))
@@ -428,29 +639,60 @@ export function DatesPanel() {
             </div>
             <div className="dates-sidebar-scroll">
               {groups.map((group) => (
-                <div className="dates-sidebar-group" key={group.id}>
-                  <div className="dates-sidebar-group__name">
+                <div
+                  className={`dates-sidebar-group ${expandedSidebarGroups[group.id] ? 'is-expanded' : 'is-collapsed'}`}
+                  key={group.id}
+                >
+                  <div
+                    className="dates-sidebar-group__name"
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={Boolean(expandedSidebarGroups[group.id])}
+                    onClick={() => setExpandedSidebarGroups((current) => ({
+                      ...current,
+                      [group.id]: !current[group.id],
+                    }))}
+                    onKeyDown={(event) => {
+                      if (event.key !== 'Enter' && event.key !== ' ') return
+                      event.preventDefault()
+                      setExpandedSidebarGroups((current) => ({
+                        ...current,
+                        [group.id]: !current[group.id],
+                      }))
+                    }}
+                  >
                     <span>{group.name}</span>
-                    <small>{group.files.length}</small>
+                    <span className="dates-sidebar-group__meta">
+                      <small>{group.files.length}</small>
+                      <span className="dates-sidebar-group__toggle" aria-hidden="true">
+                        <svg viewBox="0 0 16 16">
+                          <path d="M3.5 6l4.5 4 4.5-4" />
+                        </svg>
+                      </span>
+                    </span>
                   </div>
-                  {group.files.map((file) => (
-                    <div className="dates-file-item" key={file.id}>
-                      <span className={`dates-file-item__type dates-file-item__type_${getVariantLabel(file.name).toLowerCase()}`}>
-                        {getVariantLabel(file.name)}
-                      </span>
-                      <span className="dates-file-item__copy">
-                        <span className="dates-file-item__name" title={file.name}>{file.name}</span>
-                        <small title={file.sourceFolder}>{file.sourceFolder}</small>
-                      </span>
-                      <span className="dates-file-item__count">{file.dates.length}</span>
-                      <button
-                        type="button"
-                        className="dates-file-item__remove"
-                        aria-label={`Remove ${file.name}`}
-                        onClick={() => removeFile(file.id)}
-                      >×</button>
+                  {expandedSidebarGroups[group.id] && (
+                    <div className="dates-sidebar-group__files">
+                      {group.files.map((file) => (
+                        <div className="dates-file-item" key={file.id}>
+                          <span className={`dates-file-item__type dates-file-item__type_${getVariantLabel(file.name).toLowerCase()}`}>
+                            {getVariantLabel(file.name)}
+                          </span>
+                          <span className="dates-file-item__copy">
+                            <span className="dates-file-item__name" title={file.name}>{file.name}</span>
+                            <small title={file.sourceFolder}>{file.sourceFolder}</small>
+                          </span>
+                          <span className="dates-file-item__count">{file.dates.length}</span>
+                          <button
+                            type="button"
+                            className="dates-file-item__remove"
+                            aria-label={`Remove ${file.name}`}
+                            onClick={() => removeFile(file.id)}
+                          >×</button>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
               ))}
             </div>
@@ -505,7 +747,12 @@ export function DatesPanel() {
                       <span className="dates-original">
                         <span>{date.displayValue}</span>
                         <small>×{date.count}</small>
-                        <small>{date.fileIds.size} {date.fileIds.size === 1 ? 'file' : 'files'}</small>
+                        <DateFilesTooltip
+                          date={date}
+                          files={files}
+                          replacements={replacements}
+                          groupOverrides={groupOverrides}
+                        />
                       </span>
                       <span className="dates-arrow" aria-hidden="true">→</span>
                       <input
@@ -536,7 +783,25 @@ export function DatesPanel() {
                   className={`dates-result-card ${expandedGroups[group.id] ? 'is-expanded' : 'is-collapsed'}`}
                   key={group.id}
                 >
-                  <header className="dates-result-card__header">
+                  <header
+                    className="dates-result-card__header"
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={Boolean(expandedGroups[group.id])}
+                    onClick={() => setExpandedGroups((current) => ({
+                      ...current,
+                      [group.id]: !current[group.id],
+                    }))}
+                    onKeyDown={(event) => {
+                      if (event.target !== event.currentTarget) return
+                      if (event.key !== 'Enter' && event.key !== ' ') return
+                      event.preventDefault()
+                      setExpandedGroups((current) => ({
+                        ...current,
+                        [group.id]: !current[group.id],
+                      }))
+                    }}
+                  >
                     <div>
                       <h3>{group.name}</h3>
                       <span>{group.files.length} linked {group.files.length === 1 ? 'file' : 'files'} · {group.dates.length} unique dates</span>
@@ -545,7 +810,10 @@ export function DatesPanel() {
                       <button
                         type="button"
                         className="dates-download-one"
-                        onClick={() => downloadGroupFiles(group)}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          downloadGroupFiles(group)
+                        }}
                       >
                         Download files
                       </button>
@@ -554,10 +822,13 @@ export function DatesPanel() {
                         className="dates-group-toggle"
                         aria-label={`${expandedGroups[group.id] ? 'Collapse' : 'Expand'} ${group.name}`}
                         aria-expanded={Boolean(expandedGroups[group.id])}
-                        onClick={() => setExpandedGroups((current) => ({
-                          ...current,
-                          [group.id]: !current[group.id],
-                        }))}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          setExpandedGroups((current) => ({
+                            ...current,
+                            [group.id]: !current[group.id],
+                          }))
+                        }}
                       >
                         <svg viewBox="0 0 16 16" aria-hidden="true">
                           <path d="M3.5 6l4.5 4 4.5-4" />
@@ -596,22 +867,42 @@ export function DatesPanel() {
                       )}
 
                       <div className="dates-group-files">
-                        {group.files.map((file) => (
-                          <div className="dates-group-file" key={file.id}>
-                            <span className={`dates-group-file__type dates-group-file__type_${getVariantLabel(file.name).toLowerCase()}`}>
-                              {getVariantLabel(file.name)}
-                            </span>
-                            <span className="dates-group-file__copy">
-                              <span className="dates-group-file__name">{file.name}</span>
-                              <small title={file.sourceFolder}>{file.sourceFolder}</small>
-                            </span>
-                            <span className="dates-group-file__dates">
-                              {file.dates.length
-                                ? file.dates.map((date) => <small key={date.value}>{date.value} ×{date.count}</small>)
-                                : <small>No dates</small>}
-                            </span>
-                          </div>
-                        ))}
+                        {group.files.map((file) => {
+                          const fileDates = aggregateDates([file])
+                          const contextPreviews = fileDates.flatMap((date) => {
+                            const groupValue = groupOverrides[group.id]?.[date.key]
+                            const previewValue = groupValue || replacements[date.key] || date.displayValue
+                            return (file.dateContexts[date.key] ?? []).map((context, index) => ({
+                              id: `${date.key}-${index}`,
+                              context,
+                              previewValue,
+                            }))
+                          })
+
+                          return (
+                            <div className="dates-group-file" key={file.id}>
+                              <div className="dates-group-file__header">
+                                <span className={`dates-group-file__type dates-group-file__type_${getVariantLabel(file.name).toLowerCase()}`}>
+                                  {getVariantLabel(file.name)}
+                                </span>
+                                <span className="dates-group-file__copy">
+                                  <span className="dates-group-file__name">{file.name}</span>
+                                  <span className="dates-group-file__contexts">
+                                    {contextPreviews.length > 0
+                                      ? contextPreviews.map((preview) => (
+                                        <DateContextSnippet
+                                          context={preview.context}
+                                          key={preview.id}
+                                          replacement={preview.previewValue}
+                                        />
+                                      ))
+                                      : <span className="dates-context-snippet dates-context-snippet_empty">No visible date text found</span>}
+                                  </span>
+                                </span>
+                              </div>
+                            </div>
+                          )
+                        })}
                       </div>
                     </div>
                   )}

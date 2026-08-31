@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import type { ChangeEvent, RefObject } from 'react'
 import type { FormatterMode } from '../model/types'
 
@@ -78,15 +79,17 @@ export function FormatterControls({
         aria-label="Conversion mode"
       >
         {(['basic', 'advanced', 'dates'] as const).map((item) => (
-          <button
-            key={item}
-            type="button"
-            className={`main-btn main-btn_noicon category-wrap__link ${mode === item ? '_active' : ''}`}
-            aria-pressed={mode === item}
-            onClick={() => onModeChange(item)}
-          >
-            <span>{item === 'basic' ? 'Basic' : item === 'advanced' ? 'Custom' : 'Dates'}</span>
-          </button>
+          <Fragment key={item}>
+            {item === 'dates' && <span className="mode-switch__separator" aria-hidden="true" />}
+            <button
+              type="button"
+              className={`main-btn main-btn_noicon category-wrap__link ${mode === item ? '_active' : ''}`}
+              aria-pressed={mode === item}
+              onClick={() => onModeChange(item)}
+            >
+              <span>{item === 'basic' ? 'Basic' : item === 'advanced' ? 'Custom' : 'Dates'}</span>
+            </button>
+          </Fragment>
         ))}
       </div>
 

@@ -396,17 +396,22 @@ input[type=number] {
   display: contents;
 }
 
-.formatter-mode-stage_dates > .dates-workspace {
+.formatter-mode-stage_dates>.dates-workspace {
   animation: formatterDatesReveal .2s ease-out;
 }
 
 @keyframes formatterDatesReveal {
-  from { opacity: .35; }
-  to { opacity: 1; }
+  from {
+    opacity: .35;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .formatter-mode-stage_dates > .dates-workspace {
+  .formatter-mode-stage_dates>.dates-workspace {
     animation: none;
   }
 }
@@ -1146,10 +1151,10 @@ input[type=number] {
 }
 
 .mode-switch {
-  grid-template-columns: repeat(3, 88px);
+  grid-template-columns: repeat(2, 88px) 23px 88px;
 
   &::before {
-    width: calc((100% - 16px) / 3);
+    width: 88px;
   }
 
   &_advanced::before {
@@ -1158,8 +1163,39 @@ input[type=number] {
   }
 
   &_dates::before {
-    transform: translateX(calc(200% + 8px));
+    transform: translateX(211px);
     background: linear-gradient(135deg, rgba(107, 248, 249, .13), rgba(222, 70, 212, .2));
+  }
+
+  &__separator {
+    position: relative;
+    z-index: 2;
+    display: block;
+    align-self: center;
+    width: 23px;
+    height: 34px;
+    pointer-events: none;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 6px;
+      width: 11px;
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 5px;
+      bottom: 5px;
+      left: 11px;
+      width: 2px;
+      border-radius: 999px;
+      background: linear-gradient(to bottom, rgba(255, 255, 255, .08), rgba(255, 255, 255, .62), rgba(255, 255, 255, .08));
+      box-shadow: 0 0 7px rgba(255, 255, 255, .16);
+    }
   }
 }
 
@@ -1301,7 +1337,7 @@ input[type=number] {
     font-weight: 650;
   }
 
-  > span:last-child {
+  >span:last-child {
     margin-top: 5px;
     font-size: 12px;
   }
@@ -1382,7 +1418,9 @@ input[type=number] {
       cursor: pointer;
       transition: color .2s ease;
 
-      &:hover { color: #fff; }
+      &:hover {
+        color: #fff;
+      }
     }
   }
 }
@@ -1413,9 +1451,11 @@ input[type=number] {
     padding: 2px 4px 5px;
     align-items: center;
     justify-content: space-between;
+    border-radius: 8px;
     color: rgba(255, 255, 255, .82);
     font-size: 12px;
     font-weight: 650;
+    cursor: pointer;
 
     small {
       display: grid;
@@ -1428,6 +1468,41 @@ input[type=number] {
       background: rgba(107, 248, 249, .075);
       font-size: 9px;
     }
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  &__toggle {
+    display: grid;
+    width: 20px;
+    height: 20px;
+    place-items: center;
+    border-radius: 7px;
+    color: rgba(255, 255, 255, .52);
+    background: rgba(255, 255, 255, .04);
+
+    svg {
+      width: 12px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.5;
+      transition: transform .2s ease;
+    }
+  }
+
+  &.is-expanded &__toggle svg {
+    transform: rotate(180deg);
+  }
+
+  &__files {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    animation: datesGroupReveal .18s ease-out;
   }
 }
 
@@ -1503,7 +1578,9 @@ input[type=number] {
     cursor: pointer;
     transition: color .2s ease;
 
-    &:hover { color: #fff; }
+    &:hover {
+      color: #fff;
+    }
   }
 }
 
@@ -1579,19 +1656,19 @@ input[type=number] {
 .dates-common-card {
   display: flex;
   flex: 0 0 auto;
-  max-height: 42%;
+  max-height: 38%;
   min-height: 0;
   flex-direction: column;
   overflow: hidden;
   border: 1px solid rgba(107, 248, 249, .14);
-  border-radius: 15px;
+  border-radius: 13px;
   background: linear-gradient(135deg, rgba(107, 248, 249, .04), rgba(222, 70, 212, .035));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07);
 
   &__header {
     display: flex;
-    min-height: 65px;
-    padding: 13px 15px;
+    min-height: 54px;
+    padding: 10px 13px;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
@@ -1603,11 +1680,11 @@ input[type=number] {
       font-weight: 680;
     }
 
-    div > span {
+    div>span {
       display: block;
-      margin-top: 4px;
+      margin-top: 2px;
       color: rgba(255, 255, 255, .42);
-      font-size: 11px;
+      font-size: 10px;
     }
   }
 
@@ -1622,11 +1699,34 @@ input[type=number] {
     letter-spacing: .08em;
   }
 
-  > .dates-fields {
+  >.dates-fields {
     min-height: 0;
+    padding: 10px 12px;
+    gap: 8px;
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
+  }
+
+  .dates-field-row {
+    gap: 8px;
+
+    input {
+      height: 36px;
+      padding: 0 11px;
+      border-radius: 9px;
+      font-size: 12px;
+    }
+  }
+
+  .dates-original {
+    gap: 7px;
+    font-size: 12px;
+
+    small {
+      padding: 3px 5px;
+      font-size: 9px;
+    }
   }
 }
 
@@ -1692,8 +1792,16 @@ input[type=number] {
     justify-content: space-between;
     gap: 16px;
     border-bottom: 1px solid rgba(255, 255, 255, .06);
+    cursor: pointer;
+    transition: border-color .2s ease, background .2s ease;
 
-    > div:first-child {
+    &:hover,
+    &:focus-visible {
+      outline: 0;
+      background: rgba(255, 255, 255, .035);
+    }
+
+    >div:first-child {
       min-width: 0;
     }
 
@@ -1746,7 +1854,9 @@ input[type=number] {
   cursor: pointer;
   transition: background .2s ease;
 
-  &:hover { background: rgba(107, 248, 249, .13); }
+  &:hover {
+    background: rgba(107, 248, 249, .13);
+  }
 
   &:disabled {
     opacity: .5;
@@ -1824,14 +1934,19 @@ input[type=number] {
 }
 
 .dates-group-file {
-  display: grid;
-  grid-template-columns: 42px minmax(135px, .75fr) minmax(160px, 1.25fr);
-  min-height: 38px;
-  padding: 6px 8px;
-  align-items: center;
-  gap: 9px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .035);
   border-radius: 10px;
   background: rgba(255, 255, 255, .025);
+
+  &__header {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    min-height: 50px;
+    padding: 8px;
+    align-items: start;
+    gap: 9px;
+  }
 
   &__type {
     display: grid;
@@ -1843,6 +1958,7 @@ input[type=number] {
     font-size: 8px;
     font-weight: 780;
     letter-spacing: .04em;
+    margin-top: 1px;
 
     &_mjml {
       color: $neon-blue;
@@ -1862,36 +1978,44 @@ input[type=number] {
     display: flex;
     min-width: 0;
     flex-direction: column;
-    gap: 3px;
+    gap: 6px;
+  }
 
-    small {
-      overflow: hidden;
-      color: rgba(255, 255, 255, .3);
-      font-size: 8px;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+  &__contexts {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 4px;
+
+    .dates-context-snippet {
+      display: block;
+      padding: 4px 7px;
+      border-left: 2px solid rgba(107, 248, 249, .18);
+      border-radius: 0 6px 6px 0;
+      background: rgba(107, 248, 249, .02);
+      overflow-wrap: anywhere;
     }
   }
 
-  &__dates {
-    display: flex;
-    min-width: 0;
-    align-items: center;
-    justify-content: flex-end;
-    flex-wrap: wrap;
-    gap: 5px;
+}
 
-    small {
-      max-width: 100%;
-      padding: 4px 7px;
-      overflow: hidden;
-      border-radius: 7px;
-      color: rgba(255, 255, 255, .55);
-      background: rgba(255, 255, 255, .04);
-      font-size: 9px;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
+.dates-context-snippet {
+  min-width: 0;
+  color: rgba(255, 255, 255, .52);
+  font-size: 10px;
+  line-height: 1.45;
+
+  mark {
+    padding: 1px 3px;
+    border-radius: 4px;
+    color: #fff;
+    background: linear-gradient(135deg, rgba(107, 248, 249, .2), rgba(222, 70, 212, .2));
+    box-shadow: inset 0 0 0 1px rgba(107, 248, 249, .12);
+  }
+
+  &_empty {
+    color: rgba(255, 255, 255, .28);
+    font-style: italic;
   }
 }
 
@@ -1941,10 +2065,12 @@ input[type=number] {
   color: rgba(255, 255, 255, .73);
   font-size: 12px;
 
-  > span {
+  >span {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-weight: bold;
+    color: #ffffff;
   }
 
   small {
@@ -1954,6 +2080,207 @@ input[type=number] {
     color: $neon-pink;
     background: rgba(222, 70, 212, .08);
     font-size: 9px;
+  }
+}
+
+.dates-files-tooltip-trigger {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  border-radius: 6px;
+  outline: 0;
+  cursor: help;
+
+  &:hover small,
+  &:focus-visible small {
+    color: $neon-blue;
+    background: rgba(107, 248, 249, .11);
+    box-shadow: 0 0 0 2px rgba(107, 248, 249, .055);
+  }
+}
+
+.dates-files-popover {
+  position: fixed;
+  z-index: 10000;
+  overflow: hidden;
+  border: 1px solid rgba(107, 248, 249, .2);
+  border-radius: 16px;
+  color: rgba(255, 255, 255, .84);
+  background: linear-gradient(145deg, rgba(15, 25, 50, .96), rgba(39, 14, 45, .96));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), 0 18px 48px rgba(0, 0, 0, .42), 0 0 24px rgba(107, 248, 249, .07);
+  -webkit-backdrop-filter: blur(22px);
+  backdrop-filter: blur(22px);
+  animation: datesPopoverIn .16s ease-out;
+  pointer-events: auto;
+
+  &__header {
+    display: flex;
+    min-height: 56px;
+    padding: 13px 15px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, .07);
+
+    span {
+      color: #fff;
+      font-size: 12px;
+      font-weight: 680;
+    }
+
+    small {
+      color: rgba(255, 255, 255, .38);
+      font-size: 10px;
+      white-space: nowrap;
+    }
+  }
+
+  &__list {
+    display: flex;
+    max-height: 320px;
+    padding: 10px;
+    flex-direction: column;
+    gap: 11px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(107, 248, 249, .24) transparent;
+  }
+
+  &__group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  &__group-heading {
+    display: flex;
+    min-height: 28px;
+    padding: 0 6px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+
+    strong {
+      overflow: hidden;
+      color: rgba(255, 255, 255, .72);
+      font-size: 10px;
+      font-weight: 700;
+      text-overflow: ellipsis;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      white-space: nowrap;
+    }
+
+    small {
+      flex: 0 0 auto;
+      color: rgba(107, 248, 249, .55);
+      font-size: 9px;
+    }
+  }
+
+  &__group-files {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  &__file {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) auto;
+    min-height: 50px;
+    padding: 8px 9px;
+    align-items: start;
+    gap: 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .035);
+
+    >.dates-files-popover__type,
+    >.dates-files-popover__count {
+      margin-top: 2px;
+    }
+  }
+
+  &__type {
+    display: grid;
+    height: 28px;
+    place-items: center;
+    border-radius: 7px;
+    color: $neon-pink;
+    background: rgba(222, 70, 212, .09);
+    font-size: 8px;
+    font-weight: 800;
+
+    &_mjml {
+      color: $neon-blue;
+      background: rgba(107, 248, 249, .075);
+    }
+  }
+
+  &__copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 5px;
+
+    strong,
+    small {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    strong {
+      color: rgba(255, 255, 255, .84);
+      font-size: 11px;
+      font-weight: 620;
+    }
+
+    small {
+      color: rgba(255, 255, 255, .32);
+      font-size: 9px;
+    }
+
+    .dates-context-snippet {
+      display: block;
+      color: rgba(255, 255, 255, .4);
+      font-size: 10px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+      white-space: normal;
+
+      mark {
+        padding: 0 2px;
+      }
+    }
+  }
+
+  &__contexts {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  &__count {
+    padding: 5px 7px;
+    border-radius: 7px;
+    color: $neon-pink;
+    background: rgba(222, 70, 212, .075);
+    font-size: 10px;
+    font-weight: 680;
+  }
+}
+
+@keyframes datesPopoverIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -1970,7 +2297,10 @@ input[type=number] {
 }
 
 @media (max-width: 840px) {
-  .main-input-number-block { flex-wrap: wrap; }
+  .main-input-number-block {
+    flex-wrap: wrap;
+  }
+
   .dates-workspace {
     grid-template-columns: 1fr;
     grid-template-rows: minmax(380px, .85fr) minmax(500px, 1.15fr);
@@ -1978,21 +2308,74 @@ input[type=number] {
     overflow-y: auto;
     overscroll-behavior: contain;
   }
-  .dates-upload-panel { width: 100%; }
+
+  .dates-upload-panel {
+    width: 100%;
+  }
 }
 
 @media (max-width: 540px) {
-  .limit { padding: 14px; }
-  .mode-switch { grid-template-columns: repeat(3, minmax(70px, 88px)); }
-  .dates-results-header { align-items: flex-start; }
-  .dates-download-all { min-width: 104px; }
-  .dates-field-row { grid-template-columns: 1fr 20px; }
-  .dates-field-row input { grid-column: 1 / -1; }
-  .dates-arrow { grid-column: 2; grid-row: 1; }
-  .dates-group-file { grid-template-columns: 42px minmax(0, 1fr); }
-  .dates-group-file__dates { grid-column: 1 / -1; justify-content: flex-start; }
-  .dates-group-overrides__intro { align-items: flex-start; flex-direction: column; gap: 4px; }
-  .dates-group-overrides__intro small { text-align: left; }
-  .dates-result-card__header { align-items: flex-start; }
-  .dates-result-card__actions { flex-direction: column-reverse; align-items: flex-end; }
+  .limit {
+    padding: 14px;
+  }
+
+  .mode-switch {
+    grid-template-columns: repeat(2, 78px) 23px 78px;
+  }
+
+  .mode-switch::before {
+    width: 78px;
+  }
+
+  .mode-switch_advanced::before {
+    transform: translateX(82px);
+  }
+
+  .mode-switch_dates::before {
+    transform: translateX(191px);
+  }
+
+  .dates-results-header {
+    align-items: flex-start;
+  }
+
+  .dates-download-all {
+    min-width: 104px;
+  }
+
+  .dates-field-row {
+    grid-template-columns: 1fr 20px;
+  }
+
+  .dates-field-row input {
+    grid-column: 1 / -1;
+  }
+
+  .dates-arrow {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .dates-group-file__header {
+    grid-template-columns: 42px minmax(0, 1fr) 26px;
+  }
+
+  .dates-group-overrides__intro {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .dates-group-overrides__intro small {
+    text-align: left;
+  }
+
+  .dates-result-card__header {
+    align-items: flex-start;
+  }
+
+  .dates-result-card__actions {
+    flex-direction: column-reverse;
+    align-items: flex-end;
+  }
 }

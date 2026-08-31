@@ -3,6 +3,12 @@ export interface DetectedDate {
   count: number
 }
 
+export interface DateContext {
+  before: string
+  match: string
+  after: string
+}
+
 export function getDateGroupName(fileName: string): string {
   const withoutExtension = fileName.replace(/\.html?$/i, '')
   const withoutVariant = withoutExtension.replace(/(?:[_.\- ]+(?:html|mjml))$/i, '')
@@ -28,6 +34,72 @@ interface MatchRange {
   start: number
   end: number
   value: string
+}
+
+const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+const decodeHtmlEntities = (value: string) => value
+  .replace(/&#x([\da-f]+);/gi, (_, code: string) => String.fromCodePoint(Number.parseInt(code, 16)))
+  .replace(/&#(\d+);/g, (_, code: string) => String.fromCodePoint(Number.parseInt(code, 10)))
+  .replace(/&nbsp;/gi, ' ')
+  .replace(/&amp;/gi, '&')
+  .replace(/&quot;/gi, '"')
+  .replace(/&#39;|&apos;/gi, "'")
+  .replace(/&lt;/gi, '<')
+  .replace(/&gt;/gi, '>')
+
+const htmlToReadableText = (html: string) => decodeHtmlEntities(html
+  .replace(/<!--[\s\S]*?-->/g, ' ')
+  .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ')
+  .replace(/<\/?(?:address|article|aside|blockquote|br|div|footer|h[1-6]|header|li|main|nav|p|section|table|td|th|tr)\b[^>]*>/gi, '\n')
+  .replace(/<[^>]+>/g, ''))
+  .replace(/[\t\f\v ]+/g, ' ')
+  .replace(/ *\n */g, '\n')
+  .replace(/\n{2,}/g, '\n')
+  .trim()
+
+export function getDateContexts(html: string, dateValue: string): DateContext[] {
+  if (!dateValue.trim()) return []
+
+  const text = htmlToReadableText(html)
+  const pattern = new RegExp(escapeRegExp(dateValue).replace(/\s+/g, '[\\s\\u00a0]+'), 'gi')
+  const contexts: DateContext[] = []
+
+  for (const match of text.matchAll(pattern)) {
+    const matchStart = match.index
+    const matchEnd = matchStart + match[0].length
+    const leftBoundary = Math.max(
+      text.lastIndexOf('.', matchStart - 1),
+      text.lastIndexOf('!', matchStart - 1),
+      text.lastIndexOf('?', matchStart - 1),
+      text.lastIndexOf('\n', matchStart - 1),
+    ) + 1
+    const followingText = text.slice(matchEnd)
+    const rightBoundaryMatch = followingText.search(/[.!?\n]/)
+    const sentenceEnd = rightBoundaryMatch === -1
+      ? text.length
+      : matchEnd + rightBoundaryMatch + 1
+
+    let contextStart = leftBoundary
+    let contextEnd = sentenceEnd
+    if (contextEnd - contextStart > 190) {
+      contextStart = Math.max(contextStart, matchStart - 72)
+      contextEnd = Math.min(contextEnd, matchEnd + 104)
+    }
+
+    const clippedStart = contextStart > leftBoundary
+    const clippedEnd = contextEnd < sentenceEnd
+    const before = text.slice(contextStart, matchStart).trimStart()
+    const after = text.slice(matchEnd, contextEnd).trimEnd()
+
+    contexts.push({
+      before: `${clippedStart ? '…' : ''}${before}`,
+      match: match[0],
+      after: `${after}${clippedEnd ? '…' : ''}`,
+    })
+  }
+
+  return contexts
 }
 
 export function detectDates(html: string): DetectedDate[] {
@@ -63,7 +135,7 @@ export function replaceDates(html: string, replacements: ReadonlyMap<string, str
 
   if (originals.length === 0) return html
 
-  const escapedOriginals = originals.map((value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+  const escapedOriginals = originals.map(escapeRegExp)
   const pattern = new RegExp(escapedOriginals.join('|'), 'g')
   return html.replace(pattern, (original) => replacements.get(original) ?? original)
 }

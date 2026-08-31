@@ -78,11 +78,9 @@ input[type=number] {
 }
 .main-wrapper ::-webkit-scrollbar-track {
   background-color: transparent;
-  -webkit-border-radius: 6px;
   border-radius: 6px;
 }
 .main-wrapper ::-webkit-scrollbar-thumb {
-  -webkit-border-radius: 6px;
   border-radius: 6px;
   background: #6BF8F9 padding-box;
   border: 3px solid transparent;
@@ -148,7 +146,6 @@ input[type=number] {
   color: #fff;
   background: var(--modern-glass);
   box-shadow: var(--modern-highlight), 0 10px 26px rgba(0, 0, 0, 0.14);
-  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   transition: background 0.2s ease, box-shadow 0.2s ease;
 }
@@ -166,7 +163,6 @@ input[type=number] {
   border-radius: 12px;
   background: var(--modern-glass);
   box-shadow: var(--modern-highlight), 0 10px 26px rgba(0, 0, 0, 0.14);
-  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   transition: background 0.2s ease, box-shadow 0.2s ease;
 }
@@ -338,7 +334,6 @@ input[type=number] {
   right: 0;
   top: -45px;
   background: url("../assets/cat-8.png") center no-repeat;
-  -webkit-background-size: contain;
   background-size: contain;
   z-index: 100;
   pointer-events: none;
@@ -505,7 +500,8 @@ input[type=number] {
   position: fixed;
   left: 0;
   top: 0;
-  object-fit: cover;
+  -o-object-fit: cover;
+     object-fit: cover;
   opacity: 0.2;
   mix-blend-mode: overlay;
 }
@@ -536,7 +532,6 @@ input[type=number] {
   color: rgba(255, 255, 255, 0.9);
   background: linear-gradient(135deg, rgba(107, 248, 249, 0.07), rgba(222, 70, 212, 0.055));
   box-shadow: var(--modern-highlight), 0 10px 26px rgba(0, 0, 0, 0.14);
-  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
 .dates-mode-badge__icon {
@@ -582,7 +577,6 @@ input[type=number] {
   color: rgb(var(--step-accent));
   background: rgba(255, 255, 255, 0.04);
   box-shadow: var(--modern-highlight), 0 8px 20px rgba(0, 0, 0, 0.14);
-  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   cursor: pointer;
   transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
@@ -635,7 +629,6 @@ input[type=number] {
   color: rgba(255, 255, 255, 0.94);
   background: rgba(255, 255, 255, 0.045);
   box-shadow: var(--modern-highlight), 0 10px 26px rgba(0, 0, 0, 0.16);
-  -webkit-backdrop-filter: blur(18px);
   backdrop-filter: blur(18px);
   font-size: 14px;
   font-weight: 650;
@@ -689,7 +682,6 @@ input[type=number] {
   color: rgba(255, 255, 255, 0.58);
   background: transparent;
   box-shadow: none;
-  -webkit-backdrop-filter: none;
   backdrop-filter: none;
   transition: color 0.2s ease;
 }
@@ -714,7 +706,6 @@ input[type=number] {
   border-radius: 15px;
   background: rgba(255, 255, 255, 0.035);
   box-shadow: var(--modern-highlight), 0 10px 26px rgba(0, 0, 0, 0.12);
-  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
 .category-wrap._show {
@@ -740,7 +731,6 @@ input[type=number] {
   border-radius: 16px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.035));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 14px 34px rgba(0, 0, 0, 0.2);
-  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
 .workspace-card::after {
@@ -811,9 +801,12 @@ input[type=number] {
   display: flex;
   align-items: center;
   gap: 12px;
+  width: -moz-fit-content;
   width: fit-content;
   cursor: pointer;
-  user-select: none;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
 }
 
 .switch {
@@ -1001,7 +994,6 @@ input[type=number] {
   border-radius: 14px;
   background: transparent;
   box-shadow: none;
-  -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
 .mode-switch._show,
@@ -1044,18 +1036,46 @@ input[type=number] {
 }
 
 .mode-switch {
-  grid-template-columns: repeat(3, 88px);
+  grid-template-columns: repeat(2, 88px) 23px 88px;
 }
 .mode-switch::before {
-  width: calc((100% - 16px) / 3);
+  width: 88px;
 }
 .mode-switch_advanced::before {
   transform: translateX(calc(100% + 4px));
   background: linear-gradient(135deg, rgba(222, 70, 212, 0.19), rgba(107, 248, 249, 0.1));
 }
 .mode-switch_dates::before {
-  transform: translateX(calc(200% + 8px));
+  transform: translateX(211px);
   background: linear-gradient(135deg, rgba(107, 248, 249, 0.13), rgba(222, 70, 212, 0.2));
+}
+.mode-switch__separator {
+  position: relative;
+  z-index: 2;
+  display: block;
+  align-self: center;
+  width: 23px;
+  height: 34px;
+  pointer-events: none;
+}
+.mode-switch__separator::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 6px;
+  width: 11px;
+}
+.mode-switch__separator::after {
+  content: "";
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: 11px;
+  width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.08));
+  box-shadow: 0 0 7px rgba(255, 255, 255, 0.16);
 }
 
 .category-switch {
@@ -1102,7 +1122,6 @@ input[type=number] {
   border-radius: 18px;
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018));
   box-shadow: var(--modern-highlight), 0 18px 42px rgba(0, 0, 0, 0.16);
-  -webkit-backdrop-filter: blur(18px);
   backdrop-filter: blur(18px);
 }
 
@@ -1291,9 +1310,11 @@ input[type=number] {
   padding: 2px 4px 5px;
   align-items: center;
   justify-content: space-between;
+  border-radius: 8px;
   color: rgba(255, 255, 255, 0.82);
   font-size: 12px;
   font-weight: 650;
+  cursor: pointer;
 }
 .dates-sidebar-group__name small {
   display: grid;
@@ -1305,6 +1326,36 @@ input[type=number] {
   color: #6BF8F9;
   background: rgba(107, 248, 249, 0.075);
   font-size: 9px;
+}
+.dates-sidebar-group__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dates-sidebar-group__toggle {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 7px;
+  color: rgba(255, 255, 255, 0.52);
+  background: rgba(255, 255, 255, 0.04);
+}
+.dates-sidebar-group__toggle svg {
+  width: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  transition: transform 0.2s ease;
+}
+.dates-sidebar-group.is-expanded .dates-sidebar-group__toggle svg {
+  transform: rotate(180deg);
+}
+.dates-sidebar-group__files {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: datesGroupReveal 0.18s ease-out;
 }
 
 .dates-file-item {
@@ -1446,19 +1497,19 @@ input[type=number] {
 .dates-common-card {
   display: flex;
   flex: 0 0 auto;
-  max-height: 42%;
+  max-height: 38%;
   min-height: 0;
   flex-direction: column;
   overflow: hidden;
   border: 1px solid rgba(107, 248, 249, 0.14);
-  border-radius: 15px;
+  border-radius: 13px;
   background: linear-gradient(135deg, rgba(107, 248, 249, 0.04), rgba(222, 70, 212, 0.035));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 .dates-common-card__header {
   display: flex;
-  min-height: 65px;
-  padding: 13px 15px;
+  min-height: 54px;
+  padding: 10px 13px;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
@@ -1471,9 +1522,9 @@ input[type=number] {
 }
 .dates-common-card__header div > span {
   display: block;
-  margin-top: 4px;
+  margin-top: 2px;
   color: rgba(255, 255, 255, 0.42);
-  font-size: 11px;
+  font-size: 10px;
 }
 .dates-common-card__scope {
   flex: 0 0 auto;
@@ -1487,9 +1538,28 @@ input[type=number] {
 }
 .dates-common-card > .dates-fields {
   min-height: 0;
+  padding: 10px 12px;
+  gap: 8px;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+.dates-common-card .dates-field-row {
+  gap: 8px;
+}
+.dates-common-card .dates-field-row input {
+  height: 36px;
+  padding: 0 11px;
+  border-radius: 9px;
+  font-size: 12px;
+}
+.dates-common-card .dates-original {
+  gap: 7px;
+  font-size: 12px;
+}
+.dates-common-card .dates-original small {
+  padding: 3px 5px;
+  font-size: 9px;
 }
 
 .dates-groups-heading {
@@ -1551,6 +1621,12 @@ input[type=number] {
   justify-content: space-between;
   gap: 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.dates-result-card__header:hover, .dates-result-card__header:focus-visible {
+  outline: 0;
+  background: rgba(255, 255, 255, 0.035);
 }
 .dates-result-card__header > div:first-child {
   min-width: 0;
@@ -1669,14 +1745,18 @@ input[type=number] {
 }
 
 .dates-group-file {
-  display: grid;
-  grid-template-columns: 42px minmax(135px, 0.75fr) minmax(160px, 1.25fr);
-  min-height: 38px;
-  padding: 6px 8px;
-  align-items: center;
-  gap: 9px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.035);
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.025);
+}
+.dates-group-file__header {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  min-height: 50px;
+  padding: 8px;
+  align-items: start;
+  gap: 9px;
 }
 .dates-group-file__type {
   display: grid;
@@ -1688,6 +1768,7 @@ input[type=number] {
   font-size: 8px;
   font-weight: 780;
   letter-spacing: 0.04em;
+  margin-top: 1px;
 }
 .dates-group-file__type_mjml {
   color: #6BF8F9;
@@ -1704,33 +1785,39 @@ input[type=number] {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 3px;
+  gap: 6px;
 }
-.dates-group-file__copy small {
-  overflow: hidden;
-  color: rgba(255, 255, 255, 0.3);
-  font-size: 8px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.dates-group-file__dates {
+.dates-group-file__contexts {
   display: flex;
   min-width: 0;
-  align-items: center;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: 5px;
+  flex-direction: column;
+  gap: 4px;
 }
-.dates-group-file__dates small {
-  max-width: 100%;
+.dates-group-file__contexts .dates-context-snippet {
+  display: block;
   padding: 4px 7px;
-  overflow: hidden;
-  border-radius: 7px;
-  color: rgba(255, 255, 255, 0.55);
-  background: rgba(255, 255, 255, 0.04);
-  font-size: 9px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  border-left: 2px solid rgba(107, 248, 249, 0.18);
+  border-radius: 0 6px 6px 0;
+  background: rgba(107, 248, 249, 0.02);
+  overflow-wrap: anywhere;
+}
+
+.dates-context-snippet {
+  min-width: 0;
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 10px;
+  line-height: 1.45;
+}
+.dates-context-snippet mark {
+  padding: 1px 3px;
+  border-radius: 4px;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(107, 248, 249, 0.2), rgba(222, 70, 212, 0.2));
+  box-shadow: inset 0 0 0 1px rgba(107, 248, 249, 0.12);
+}
+.dates-context-snippet_empty {
+  color: rgba(255, 255, 255, 0.28);
+  font-style: italic;
 }
 
 .dates-fields {
@@ -1764,6 +1851,9 @@ input[type=number] {
   background: rgba(255, 255, 255, 0.055);
   box-shadow: 0 0 0 3px rgba(107, 248, 249, 0.055);
 }
+.dates-field-row_group input::-moz-placeholder {
+  color: rgba(255, 255, 255, 0.27);
+}
 .dates-field-row_group input::placeholder {
   color: rgba(255, 255, 255, 0.27);
 }
@@ -1780,6 +1870,8 @@ input[type=number] {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-weight: bold;
+  color: #ffffff;
 }
 .dates-original small {
   flex: 0 0 auto;
@@ -1790,6 +1882,181 @@ input[type=number] {
   font-size: 9px;
 }
 
+.dates-files-tooltip-trigger {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  border-radius: 6px;
+  outline: 0;
+  cursor: help;
+}
+.dates-files-tooltip-trigger:hover small, .dates-files-tooltip-trigger:focus-visible small {
+  color: #6BF8F9;
+  background: rgba(107, 248, 249, 0.11);
+  box-shadow: 0 0 0 2px rgba(107, 248, 249, 0.055);
+}
+
+.dates-files-popover {
+  position: fixed;
+  z-index: 10000;
+  overflow: hidden;
+  border: 1px solid rgba(107, 248, 249, 0.2);
+  border-radius: 16px;
+  color: rgba(255, 255, 255, 0.84);
+  background: linear-gradient(145deg, rgba(15, 25, 50, 0.96), rgba(39, 14, 45, 0.96));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 18px 48px rgba(0, 0, 0, 0.42), 0 0 24px rgba(107, 248, 249, 0.07);
+  backdrop-filter: blur(22px);
+  animation: datesPopoverIn 0.16s ease-out;
+  pointer-events: auto;
+}
+.dates-files-popover__header {
+  display: flex;
+  min-height: 56px;
+  padding: 13px 15px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+.dates-files-popover__header span {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 680;
+}
+.dates-files-popover__header small {
+  color: rgba(255, 255, 255, 0.38);
+  font-size: 10px;
+  white-space: nowrap;
+}
+.dates-files-popover__list {
+  display: flex;
+  max-height: 320px;
+  padding: 10px;
+  flex-direction: column;
+  gap: 11px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(107, 248, 249, 0.24) transparent;
+}
+.dates-files-popover__group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.dates-files-popover__group-heading {
+  display: flex;
+  min-height: 28px;
+  padding: 0 6px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.dates-files-popover__group-heading strong {
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 10px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  white-space: nowrap;
+}
+.dates-files-popover__group-heading small {
+  flex: 0 0 auto;
+  color: rgba(107, 248, 249, 0.55);
+  font-size: 9px;
+}
+.dates-files-popover__group-files {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.dates-files-popover__file {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  min-height: 50px;
+  padding: 8px 9px;
+  align-items: start;
+  gap: 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+}
+.dates-files-popover__file > .dates-files-popover__type,
+.dates-files-popover__file > .dates-files-popover__count {
+  margin-top: 2px;
+}
+.dates-files-popover__type {
+  display: grid;
+  height: 28px;
+  place-items: center;
+  border-radius: 7px;
+  color: #DE46D4;
+  background: rgba(222, 70, 212, 0.09);
+  font-size: 8px;
+  font-weight: 800;
+}
+.dates-files-popover__type_mjml {
+  color: #6BF8F9;
+  background: rgba(107, 248, 249, 0.075);
+}
+.dates-files-popover__copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+.dates-files-popover__copy strong,
+.dates-files-popover__copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dates-files-popover__copy strong {
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 11px;
+  font-weight: 620;
+}
+.dates-files-popover__copy small {
+  color: rgba(255, 255, 255, 0.32);
+  font-size: 9px;
+}
+.dates-files-popover__copy .dates-context-snippet {
+  display: block;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 10px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+.dates-files-popover__copy .dates-context-snippet mark {
+  padding: 0 2px;
+}
+.dates-files-popover__contexts {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+.dates-files-popover__count {
+  padding: 5px 7px;
+  border-radius: 7px;
+  color: #DE46D4;
+  background: rgba(222, 70, 212, 0.075);
+  font-size: 10px;
+  font-weight: 680;
+}
+
+@keyframes datesPopoverIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
 .dates-arrow {
   color: rgba(107, 248, 249, 0.48);
   font-size: 15px;
@@ -1822,7 +2089,16 @@ input[type=number] {
     padding: 14px;
   }
   .mode-switch {
-    grid-template-columns: repeat(3, minmax(70px, 88px));
+    grid-template-columns: repeat(2, 78px) 23px 78px;
+  }
+  .mode-switch::before {
+    width: 78px;
+  }
+  .mode-switch_advanced::before {
+    transform: translateX(82px);
+  }
+  .mode-switch_dates::before {
+    transform: translateX(191px);
   }
   .dates-results-header {
     align-items: flex-start;
@@ -1840,12 +2116,8 @@ input[type=number] {
     grid-column: 2;
     grid-row: 1;
   }
-  .dates-group-file {
-    grid-template-columns: 42px minmax(0, 1fr);
-  }
-  .dates-group-file__dates {
-    grid-column: 1/-1;
-    justify-content: flex-start;
+  .dates-group-file__header {
+    grid-template-columns: 42px minmax(0, 1fr) 26px;
   }
   .dates-group-overrides__intro {
     align-items: flex-start;
@@ -1862,6 +2134,4 @@ input[type=number] {
     flex-direction: column-reverse;
     align-items: flex-end;
   }
-}
-
-/*# sourceMappingURL=style.css.map */
+}/*# sourceMappingURL=style.css.map */
