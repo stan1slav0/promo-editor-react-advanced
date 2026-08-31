@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 
 interface FormatterShortcutsOptions {
+  enabled?: boolean
   activeCategory: string
   isAnalyzing: boolean
   onDownloadAll: () => void
@@ -19,6 +20,7 @@ export function useFormatterShortcuts(options: FormatterShortcutsOptions): void 
 
       const key = event.key.toLowerCase()
       const current = optionsRef.current
+      if (current.enabled === false) return
 
       if (key === 's' && !event.shiftKey) {
         event.preventDefault()

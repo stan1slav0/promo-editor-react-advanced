@@ -3,6 +3,7 @@ import type { ChangeEvent, FormEvent } from 'react'
 import { toast } from 'react-toastify'
 
 import { getConverter } from '../../converters'
+import { DatesPanel } from '../dates/DatesPanel'
 import { DownloadActions } from './components/DownloadActions'
 import { EditorPanel } from './components/EditorPanel'
 import { FormatterControls } from './components/FormatterControls'
@@ -34,7 +35,8 @@ export default function Formatter({
   const isFirstS3RenderRef = useRef(true)
   const previousS3EnabledRef = useRef(isS3Enabled)
 
-  const activeConverter = getConverter(mode, activeCategory) as FormatterConverter
+  const conversionMode = mode === 'dates' ? 'basic' : mode
+  const activeConverter = getConverter(conversionMode, activeCategory) as FormatterConverter
   const supportsMJML = activeConverter.hasMJML !== false
   const activeCategoryIndex = Math.max(
     0,
@@ -129,7 +131,7 @@ export default function Formatter({
   const handleModeChange = useCallback((nextMode: FormatterMode) => {
     setMode(nextMode)
     toast.info(
-      <span><strong>{nextMode === 'basic' ? 'Basic' : 'Custom'}</strong> Mode</span>,
+      <span><strong>{nextMode === 'basic' ? 'Basic' : nextMode === 'advanced' ? 'Custom' : 'Dates'}</strong> Mode</span>,
       { autoClose: 1500, hideProgressBar: true, closeButton: false },
     )
   }, [])
@@ -200,6 +202,7 @@ export default function Formatter({
   }, [cancelImageExport, clearOutputs, dismissS3Toast, resetImageState])
 
   useFormatterShortcuts({
+    enabled: mode !== 'dates',
     activeCategory,
     isAnalyzing,
     onDownloadAll: () => void handleDownloadAll(),
@@ -224,36 +227,38 @@ export default function Formatter({
           onCategoryChange={handleCategoryChange}
         />
 
-        <div className="flex-cols flex-cols_cat">
-          <EditorPanel
-            editorRef={editorRef as ScrollableRef}
-            onPaste={handlePaste}
-            onInput={handleEditorInput}
-            onScroll={() => handleSyncScroll(editorRef as ScrollableRef)}
-          />
+        <div className={`formatter-mode-stage formatter-mode-stage_${mode}`}>
+          {mode === 'dates' ? <DatesPanel /> : <div className="flex-cols flex-cols_cat">
+            <EditorPanel
+              editorRef={editorRef as ScrollableRef}
+              onPaste={handlePaste}
+              onInput={handleEditorInput}
+              onScroll={() => handleSyncScroll(editorRef as ScrollableRef)}
+            />
 
-          <div className="flex-col">
-            <div className="code-blocks-wrapper">
-              <DownloadActions
-                activeCategory={activeCategory}
-                supportsMJML={supportsMJML}
-                hasImages={hasImages}
-                isAnalyzing={isAnalyzing}
-                onDownloadAll={() => void handleDownloadAll()}
-                onDownloadHtml={() => void handleFullDownloadHTML()}
-                onDownloadImages={() => void handleDownloadImagesOnly()}
-              />
-              <OutputPanels
-                supportsMJML={supportsMJML}
-                htmlOutput={htmlOutput}
-                mjmlOutput={mjmlOutput}
-                htmlOutputRef={htmlOutputRef as ScrollableRef}
-                mjmlOutputRef={mjmlOutputRef as ScrollableRef}
-                onHtmlScroll={() => handleSyncScroll(htmlOutputRef as ScrollableRef)}
-                onMjmlScroll={() => handleSyncScroll(mjmlOutputRef as ScrollableRef)}
-              />
+            <div className="flex-col">
+              <div className="code-blocks-wrapper">
+                <DownloadActions
+                  activeCategory={activeCategory}
+                  supportsMJML={supportsMJML}
+                  hasImages={hasImages}
+                  isAnalyzing={isAnalyzing}
+                  onDownloadAll={() => void handleDownloadAll()}
+                  onDownloadHtml={() => void handleFullDownloadHTML()}
+                  onDownloadImages={() => void handleDownloadImagesOnly()}
+                />
+                <OutputPanels
+                  supportsMJML={supportsMJML}
+                  htmlOutput={htmlOutput}
+                  mjmlOutput={mjmlOutput}
+                  htmlOutputRef={htmlOutputRef as ScrollableRef}
+                  mjmlOutputRef={mjmlOutputRef as ScrollableRef}
+                  onHtmlScroll={() => handleSyncScroll(htmlOutputRef as ScrollableRef)}
+                  onMjmlScroll={() => handleSyncScroll(mjmlOutputRef as ScrollableRef)}
+                />
+              </div>
             </div>
-          </div>
+          </div>}
         </div>
       </div>
     </div>

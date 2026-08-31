@@ -30,7 +30,10 @@ export function FormatterControls({
 }: FormatterControlsProps) {
   return (
     <div className="main-input-number-block">
-      <div className="input-name-block">
+      <div
+        className={`input-name-block ${mode === 'dates' ? 'input-name-block_placeholder' : ''}`}
+        aria-hidden={mode === 'dates'}
+      >
         <button type="button" tabIndex={-1} className="button-number button-decrement" onClick={() => onChangeNumber(-1)}>
           <svg viewBox="0 0 15 3" xmlns="http://www.w3.org/2000/svg">
             <path d="M0 1.5C0 0.671573 0.671573 0 1.5 0H13.5C14.3284 0 15 0.671573 15 1.5C15 2.32843 14.3284 3 13.5 3H1.5C0.671573 3 0 2.32843 0 1.5Z" />
@@ -60,12 +63,12 @@ export function FormatterControls({
       </div>
 
       <div
-        className={`category-wrap mode-switch _show ${mode === 'advanced' ? 'is-advanced' : 'is-basic'}`}
+        className={`category-wrap mode-switch mode-switch_${mode} _show`}
         style={{ marginRight: '8px' }}
         role="group"
         aria-label="Conversion mode"
       >
-        {(['basic', 'advanced'] as const).map((item) => (
+        {(['basic', 'advanced', 'dates'] as const).map((item) => (
           <button
             key={item}
             type="button"
@@ -73,12 +76,12 @@ export function FormatterControls({
             aria-pressed={mode === item}
             onClick={() => onModeChange(item)}
           >
-            <span>{item === 'basic' ? 'Basic' : 'Custom'}</span>
+            <span>{item === 'basic' ? 'Basic' : item === 'advanced' ? 'Custom' : 'Dates'}</span>
           </button>
         ))}
       </div>
 
-      {showCategories && availableCategories.length > 1 && (
+      {mode !== 'dates' && showCategories && availableCategories.length > 1 && (
         <div
           className={`category-wrap category-switch category-switch_pos-${activeCategoryIndex} _show`}
           role="group"

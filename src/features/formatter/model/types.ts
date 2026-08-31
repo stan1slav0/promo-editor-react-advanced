@@ -1,7 +1,7 @@
 import type { RefObject } from 'react'
 import type { ConversionMode, Converter } from '../../../converters/types'
 
-export type FormatterMode = ConversionMode
+export type FormatterMode = ConversionMode | 'dates'
 export type FormatterConverter = Converter
 
 export interface FormatterProps {
