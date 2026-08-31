@@ -52,6 +52,18 @@ const safeZipPath = (value: string) => value
   .filter((part) => part && part !== '.' && part !== '..')
   .join('/')
 
+const downloadArchiveBlob = (blob: Blob, fileName: string) => {
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = fileName
+  link.style.display = 'none'
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
 const getVariantLabel = (fileName: string) => /(?:^|[_\-. ])mjml(?:\.html?)?$/i.test(fileName)
   ? 'MJML'
   : 'HTML'
@@ -159,6 +171,18 @@ export function DatesPanel() {
 
   const aggregatedDates = useMemo(() => aggregateDates(files), [files])
 
+  const archiveBaseName = useMemo(() => {
+    const firstFile = files[0]
+    if (!firstFile) return 'date-changes'
+
+    const groupName = getDateGroupName(firstFile.name)
+    const nameWithoutTrailingNumber = groupName
+      .replace(/[\s_-]*\d+$/u, '')
+      .replace(/[\s_-]+$/u, '')
+    const sourceName = nameWithoutTrailingNumber || groupName
+    return safeArchiveName(`date-changes-${sourceName}`)
+  }, [files])
+
   const analyzeFiles = useCallback(async (selectedFiles: SelectedFile[]) => {
     const htmlFiles = selectedFiles.filter(({ file }) => isHtmlFile(file))
     if (htmlFiles.length === 0) {
@@ -260,12 +284,19 @@ export function DatesPanel() {
     setIsPacking(true)
     try {
       const zip = new JSZip()
+      const folderRoots = files.map((file) => file.relativePath.split('/')[0])
+      const commonRoot = folderRoots.length > 0 && folderRoots.every((root) => root === folderRoots[0])
+        ? folderRoots[0]
+        : null
 
       for (const group of groups) {
         for (const file of group.files) {
           const hasFolderPath = file.relativePath.includes('/')
+          const pathWithoutCommonRoot = commonRoot && file.relativePath.startsWith(`${commonRoot}/`)
+            ? file.relativePath.slice(commonRoot.length + 1)
+            : file.relativePath
           const archivePath = hasFolderPath
-            ? file.relativePath
+            ? pathWithoutCommonRoot
             : groups.length > 1
               ? `${safeArchiveName(group.name)}/${file.name}`
               : file.name
@@ -278,7 +309,7 @@ export function DatesPanel() {
         compression: 'DEFLATE',
         compressionOptions: { level: 6 },
       })
-      saveAs(blob, 'updated-dates.zip')
+      downloadArchiveBlob(blob, `${archiveBaseName}.zip`)
       toast.success(`${files.length} updated ${files.length === 1 ? 'file' : 'files'} packed into ZIP`)
     } catch {
       toast.error('Could not create ZIP archive')
@@ -443,6 +474,7 @@ export function DatesPanel() {
               type="button"
               className="main-btn dates-download-all"
               disabled={isPacking}
+              title={`Download ${archiveBaseName}.zip`}
               onClick={() => void downloadAllArchive()}
             >
               <span>{isPacking ? 'Packing…' : 'Download all ZIP'}</span>
