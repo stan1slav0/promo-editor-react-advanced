@@ -30,10 +30,18 @@ export function FormatterControls({
 }: FormatterControlsProps) {
   return (
     <div className="main-input-number-block">
-      <div
-        className={`input-name-block ${mode === 'dates' ? 'input-name-block_placeholder' : ''}`}
-        aria-hidden={mode === 'dates'}
-      >
+      {mode === 'dates' ? (
+        <div className="dates-mode-badge" role="status" aria-label="Dates Changes">
+          <span className="dates-mode-badge__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M7 3v3m10-3v3M4.5 9h15M6 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" />
+              <path d="m9 14 2-2 2 2 2-2" />
+            </svg>
+          </span>
+          <span className="dates-mode-badge__label">Dates Changes</span>
+        </div>
+      ) : (
+      <div className="input-name-block">
         <button type="button" tabIndex={-1} className="button-number button-decrement" onClick={() => onChangeNumber(-1)}>
           <svg viewBox="0 0 15 3" xmlns="http://www.w3.org/2000/svg">
             <path d="M0 1.5C0 0.671573 0.671573 0 1.5 0H13.5C14.3284 0 15 0.671573 15 1.5C15 2.32843 14.3284 3 13.5 3H1.5C0.671573 3 0 2.32843 0 1.5Z" />
@@ -61,6 +69,7 @@ export function FormatterControls({
           </svg>
         </button>
       </div>
+      )}
 
       <div
         className={`category-wrap mode-switch mode-switch_${mode} _show`}

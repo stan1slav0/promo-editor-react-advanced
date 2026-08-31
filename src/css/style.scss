@@ -579,10 +579,53 @@ input[type=number] {
   display: flex;
   align-items: center;
   gap: 6px;
+}
 
-  &_placeholder {
-    visibility: hidden;
-    pointer-events: none;
+.dates-mode-badge {
+  display: flex;
+  flex: 0 0 200px;
+  width: 200px;
+  height: 40px;
+  padding: 5px 12px 5px 6px;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(107, 248, 249, .13);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, .9);
+  background: linear-gradient(135deg, rgba(107, 248, 249, .07), rgba(222, 70, 212, .055));
+  box-shadow: var(--modern-highlight), 0 10px 26px rgba(0, 0, 0, .14);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+
+  &__icon {
+    display: grid;
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+    place-items: center;
+    border-radius: 9px;
+    color: $neon-blue;
+    background: rgba(107, 248, 249, .075);
+
+    svg {
+      width: 17px;
+      height: 17px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  }
+
+  &__label {
+    overflow: hidden;
+    font-size: 12px;
+    font-weight: 680;
+    letter-spacing: .02em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
