@@ -1423,6 +1423,32 @@ input[type=number] {
       }
     }
   }
+
+  &__stats {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 7px;
+
+    >span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
+
+.dates-review-summary {
+  flex: 0 0 auto;
+  padding: 3px 6px;
+  border-radius: 6px;
+  color: rgba(255, 203, 129, .92);
+  background: rgba(255, 174, 76, .09);
+  box-shadow: inset 0 0 0 1px rgba(255, 190, 107, .16);
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: .04em;
+  white-space: nowrap;
 }
 
 .dates-sidebar-scroll {
@@ -1445,6 +1471,12 @@ input[type=number] {
   border: 1px solid rgba(255, 255, 255, .055);
   border-radius: 13px;
   background: rgba(0, 0, 0, .07);
+
+  &.has-review {
+    border-color: rgba(255, 190, 107, .26);
+    background: linear-gradient(105deg, rgba(255, 174, 76, .09), rgba(255, 174, 76, .018));
+    box-shadow: inset 3px 0 0 rgba(255, 190, 107, .58), 0 5px 18px rgba(0, 0, 0, .08);
+  }
 
   &__name {
     display: flex;
@@ -1474,6 +1506,18 @@ input[type=number] {
     display: flex;
     align-items: center;
     gap: 6px;
+  }
+
+  &__review {
+    padding: 4px 6px;
+    border-radius: 6px;
+    color: rgba(255, 203, 129, .96);
+    background: rgba(255, 174, 76, .11);
+    font-size: 8px;
+    font-weight: 750;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    white-space: nowrap;
   }
 
   &__toggle {
@@ -1516,6 +1560,11 @@ input[type=number] {
   border-radius: 12px;
   color: rgba(255, 255, 255, .82);
   background: rgba(255, 255, 255, .035);
+
+  &.is-no-dates {
+    background: linear-gradient(90deg, rgba(255, 174, 76, .085), rgba(255, 174, 76, .025));
+    box-shadow: inset 3px 0 0 rgba(255, 190, 107, .52), 0 0 0 1px rgba(255, 190, 107, .15);
+  }
 
   &__type {
     display: grid;
@@ -1568,6 +1617,16 @@ input[type=number] {
     color: rgba(255, 255, 255, .6);
     background: rgba(255, 255, 255, .055);
     font-size: 10px;
+
+    &.is-warning {
+      min-width: 42px;
+      color: rgba(255, 203, 129, .96);
+      background: rgba(255, 174, 76, .11);
+      font-size: 8px;
+      font-weight: 750;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+    }
   }
 
   &__remove {
@@ -1780,6 +1839,13 @@ input[type=number] {
     background: rgba(0, 0, 0, .12);
   }
 
+  &.has-review,
+  &.has-review.is-expanded {
+    border-color: rgba(255, 190, 107, .28);
+    background: linear-gradient(105deg, rgba(255, 174, 76, .085), rgba(0, 0, 0, .11) 48%);
+    box-shadow: inset 3px 0 0 rgba(255, 190, 107, .6);
+  }
+
   &.is-collapsed &__header {
     border-bottom-color: transparent;
   }
@@ -1825,6 +1891,11 @@ input[type=number] {
     flex: 0 0 auto;
     align-items: center;
     gap: 8px;
+  }
+
+  &__review {
+    color: rgba(255, 203, 129, .92);
+    font-weight: 680;
   }
 
   &__body {
@@ -1939,6 +2010,12 @@ input[type=number] {
   border-radius: 10px;
   background: rgba(255, 255, 255, .025);
 
+  &.is-no-dates {
+    border-color: rgba(255, 190, 107, .18);
+    background: linear-gradient(90deg, rgba(255, 174, 76, .075), rgba(255, 174, 76, .018));
+    box-shadow: inset 3px 0 0 rgba(255, 190, 107, .48);
+  }
+
   &__header {
     display: grid;
     grid-template-columns: 42px minmax(0, 1fr);
@@ -1997,6 +2074,11 @@ input[type=number] {
     }
   }
 
+}
+
+.dates-context-snippet.dates-context-snippet_warning {
+  color: rgba(255, 203, 129, .92);
+  font-weight: 650;
 }
 
 .dates-context-snippet {

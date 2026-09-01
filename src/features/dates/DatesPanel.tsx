@@ -43,6 +43,7 @@ interface FileGroup {
   name: string
   files: AnalyzedFile[]
   dates: AggregatedDate[]
+  reviewCount: number
 }
 
 const isHtmlFile = (file: File) => /\.html?$/i.test(file.name) || file.type === 'text/html'
@@ -333,7 +334,7 @@ export function DatesPanel() {
   }, [])
 
   const groups = useMemo<FileGroup[]>(() => {
-    const grouped = new Map<string, Omit<FileGroup, 'dates'>>()
+    const grouped = new Map<string, Omit<FileGroup, 'dates' | 'reviewCount'>>()
 
     for (const file of files) {
       const id = file.groupName.toLocaleLowerCase('en-US')
@@ -349,12 +350,17 @@ export function DatesPanel() {
           ...group,
           files: sortedFiles,
           dates: aggregateDates(sortedFiles),
+          reviewCount: sortedFiles.filter((file) => file.dates.length === 0).length,
         }
       })
       .sort((left, right) => naturalCompare(left.name, right.name))
   }, [files])
 
   const aggregatedDates = useMemo(() => aggregateDates(files), [files])
+  const filesWithoutDates = useMemo(
+    () => files.filter((file) => file.dates.length === 0),
+    [files],
+  )
 
   const archiveBaseName = useMemo(() => {
     const firstFile = files[0]
@@ -635,13 +641,20 @@ export function DatesPanel() {
         {files.length > 0 && (
           <div className="dates-file-list">
             <div className="dates-file-list__summary">
-              <span>{files.length} {files.length === 1 ? 'file' : 'files'} · {groups.length} {groups.length === 1 ? 'group' : 'groups'}</span>
+              <span className="dates-file-list__stats">
+                <span>{files.length} {files.length === 1 ? 'file' : 'files'} · {groups.length} {groups.length === 1 ? 'group' : 'groups'}</span>
+                {filesWithoutDates.length > 0 && (
+                  <strong className="dates-review-summary">
+                    {filesWithoutDates.length} need review
+                  </strong>
+                )}
+              </span>
               <button type="button" onClick={clearFiles}>Clear</button>
             </div>
             <div className="dates-sidebar-scroll">
               {groups.map((group) => (
                 <div
-                  className={`dates-sidebar-group ${expandedSidebarGroups[group.id] ? 'is-expanded' : 'is-collapsed'}`}
+                  className={`dates-sidebar-group ${group.reviewCount > 0 ? 'has-review' : ''} ${expandedSidebarGroups[group.id] ? 'is-expanded' : 'is-collapsed'}`}
                   key={group.id}
                 >
                   <div
@@ -664,6 +677,9 @@ export function DatesPanel() {
                   >
                     <span>{group.name}</span>
                     <span className="dates-sidebar-group__meta">
+                      {group.reviewCount > 0 && (
+                        <strong className="dates-sidebar-group__review">Review {group.reviewCount}</strong>
+                      )}
                       <small>{group.files.length}</small>
                       <span className="dates-sidebar-group__toggle" aria-hidden="true">
                         <svg viewBox="0 0 16 16">
@@ -675,7 +691,11 @@ export function DatesPanel() {
                   {expandedSidebarGroups[group.id] && (
                     <div className="dates-sidebar-group__files">
                       {group.files.map((file) => (
-                        <div className="dates-file-item" key={file.id}>
+                        <div
+                          className={`dates-file-item ${file.dates.length === 0 ? 'is-no-dates' : ''}`}
+                          key={file.id}
+                          title={file.dates.length === 0 ? 'No supported dates found. Review this file manually.' : undefined}
+                        >
                           <span className={`dates-file-item__type dates-file-item__type_${getVariantLabel(file.name).toLowerCase()}`}>
                             {getVariantLabel(file.name)}
                           </span>
@@ -683,7 +703,9 @@ export function DatesPanel() {
                             <span className="dates-file-item__name" title={file.name}>{file.name}</span>
                             <small title={file.sourceFolder}>{file.sourceFolder}</small>
                           </span>
-                          <span className="dates-file-item__count">{file.dates.length}</span>
+                          <span className={`dates-file-item__count ${file.dates.length === 0 ? 'is-warning' : ''}`}>
+                            {file.dates.length === 0 ? 'Review' : file.dates.length}
+                          </span>
                           <button
                             type="button"
                             className="dates-file-item__remove"
@@ -781,7 +803,7 @@ export function DatesPanel() {
             <div className="dates-groups-scroll">
               {groups.map((group) => (
                 <article
-                  className={`dates-result-card ${expandedGroups[group.id] ? 'is-expanded' : 'is-collapsed'}`}
+                  className={`dates-result-card ${group.reviewCount > 0 ? 'has-review' : ''} ${expandedGroups[group.id] ? 'is-expanded' : 'is-collapsed'}`}
                   key={group.id}
                 >
                   <header
@@ -805,7 +827,12 @@ export function DatesPanel() {
                   >
                     <div>
                       <h3>{group.name}</h3>
-                      <span>{group.files.length} linked {group.files.length === 1 ? 'file' : 'files'} · {group.dates.length} unique dates</span>
+                      <span>
+                        {group.files.length} linked {group.files.length === 1 ? 'file' : 'files'} · {group.dates.length} unique dates
+                        {group.reviewCount > 0 && (
+                          <strong className="dates-result-card__review"> · {group.reviewCount} need review</strong>
+                        )}
+                      </span>
                     </div>
                     <div className="dates-result-card__actions">
                       <button
@@ -881,7 +908,10 @@ export function DatesPanel() {
                           })
 
                           return (
-                            <div className="dates-group-file" key={file.id}>
+                            <div
+                              className={`dates-group-file ${file.dates.length === 0 ? 'is-no-dates' : ''}`}
+                              key={file.id}
+                            >
                               <div className="dates-group-file__header">
                                 <span className={`dates-group-file__type dates-group-file__type_${getVariantLabel(file.name).toLowerCase()}`}>
                                   {getVariantLabel(file.name)}
@@ -897,7 +927,9 @@ export function DatesPanel() {
                                           replacement={preview.previewValue}
                                         />
                                       ))
-                                      : <span className="dates-context-snippet dates-context-snippet_empty">No visible date text found</span>}
+                                      : file.dates.length === 0
+                                        ? <span className="dates-context-snippet dates-context-snippet_warning">No supported dates found · Review manually</span>
+                                        : <span className="dates-context-snippet dates-context-snippet_empty">No visible date text found</span>}
                                   </span>
                                 </span>
                               </div>
