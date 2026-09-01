@@ -49,6 +49,21 @@ describe('detectDates', () => {
       { value: 'September&#xA0;19', count: 1 },
     ])
   })
+
+  it('detects month and year dates without a day', () => {
+    expect(detectDates('August 2026 / Aug. 2026 / August, 2026 / August&nbsp;2026')).toEqual([
+      { value: 'August 2026', count: 1 },
+      { value: 'Aug. 2026', count: 1 },
+      { value: 'August, 2026', count: 1 },
+      { value: 'August&nbsp;2026', count: 1 },
+    ])
+  })
+
+  it('does not double-detect the month and year inside a full date', () => {
+    expect(detectDates('August 19, 2026')).toEqual([
+      { value: 'August 19, 2026', count: 1 },
+    ])
+  })
 })
 
 describe('getDateContexts', () => {

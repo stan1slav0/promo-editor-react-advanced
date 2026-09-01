@@ -39,6 +39,7 @@ const YEAR = '(?:(?:19|20)\\d{2})'
 const DATE_PATTERNS = [
   new RegExp(`\\b${MONTH}${DATE_SPACE}${DAY}(?:${OPTIONAL_DATE_SPACE},?${OPTIONAL_DATE_SPACE}${YEAR})?\\b`, 'gi'),
   new RegExp(`\\b${DAY}${DATE_SPACE}(?:of${DATE_SPACE})?${MONTH}(?:${OPTIONAL_DATE_SPACE},?${OPTIONAL_DATE_SPACE}${YEAR})?\\b`, 'gi'),
+  new RegExp(`\\b${MONTH}(?:${DATE_SPACE}|${OPTIONAL_DATE_SPACE},${OPTIONAL_DATE_SPACE})${YEAR}\\b`, 'gi'),
   new RegExp(`\\b${YEAR}[-/.](?:0?[1-9]|1[0-2])[-/.](?:0?[1-9]|[12]\\d|3[01])\\b`, 'g'),
   new RegExp(`\\b(?:0?[1-9]|[12]\\d|3[01])[-/.](?:0?[1-9]|1[0-2])[-/.]${YEAR}\\b`, 'g'),
 ]
