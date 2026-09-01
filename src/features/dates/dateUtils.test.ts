@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { detectDates, getDateContexts, getDateGroupName, normalizeDateKey, replaceDates } from './dateUtils'
+import {
+  detectDates,
+  getDateContexts,
+  getDateGroupName,
+  normalizeDateKey,
+  replaceDates,
+  toReadableDateValue,
+} from './dateUtils'
 
 describe('getDateGroupName', () => {
   it('groups HTML and MJML variants under the same promo name', () => {
@@ -12,6 +19,11 @@ describe('getDateGroupName', () => {
 describe('normalizeDateKey', () => {
   it('treats casing and repeated whitespace as the same date', () => {
     expect(normalizeDateKey('  December   23th ')).toBe(normalizeDateKey('december 23th'))
+  })
+
+  it('groups HTML non-breaking spaces with regular spaces', () => {
+    expect(normalizeDateKey('September&nbsp;19')).toBe(normalizeDateKey('September 19'))
+    expect(toReadableDateValue('September&#xA0;19')).toBe('September 19')
   })
 })
 
@@ -28,6 +40,14 @@ describe('detectDates', () => {
 
   it('does not treat invalid month and day numbers as dates', () => {
     expect(detectDates('2026-19-44 and 44/19/2026')).toEqual([])
+  })
+
+  it('detects written dates separated by HTML space entities', () => {
+    expect(detectDates('September&nbsp;19 / September&#160;19 / September&#xA0;19')).toEqual([
+      { value: 'September&nbsp;19', count: 1 },
+      { value: 'September&#160;19', count: 1 },
+      { value: 'September&#xA0;19', count: 1 },
+    ])
   })
 })
 
@@ -47,6 +67,14 @@ describe('getDateContexts', () => {
 
     expect(getDateContexts(html, 'September 19')).toHaveLength(2)
   })
+
+  it('returns readable context for a date containing an HTML entity', () => {
+    expect(getDateContexts('<p>Offer ends September&nbsp;19.</p>', 'September&nbsp;19')).toEqual([{
+      before: 'Offer ends ',
+      match: 'September 19',
+      after: '.',
+    }])
+  })
 })
 
 describe('replaceDates', () => {
@@ -65,5 +93,12 @@ describe('replaceDates', () => {
 
     expect(replaceDates('September 18th / October 2nd', replacements))
       .toBe('October 2nd / November 4th')
+  })
+
+  it('preserves an HTML non-breaking space when replacing a date', () => {
+    const replacements = new Map([['September&nbsp;19', 'October 3']])
+
+    expect(replaceDates('<p>September&nbsp;19</p>', replacements))
+      .toBe('<p>October&nbsp;3</p>')
   })
 })

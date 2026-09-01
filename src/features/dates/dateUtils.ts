@@ -9,6 +9,11 @@ export interface DateContext {
   after: string
 }
 
+const HTML_SPACE_ENTITY_SOURCE = '&(?:nbsp|#0*(?:32|160)|#x0*(?:20|a0));'
+const HTML_SPACE = `(?:\\s|${HTML_SPACE_ENTITY_SOURCE})`
+const DATE_SPACE = `${HTML_SPACE}+`
+const OPTIONAL_DATE_SPACE = `${HTML_SPACE}*`
+
 export function getDateGroupName(fileName: string): string {
   const withoutExtension = fileName.replace(/\.html?$/i, '')
   const withoutVariant = withoutExtension.replace(/(?:[_.\- ]+(?:html|mjml))$/i, '')
@@ -16,7 +21,15 @@ export function getDateGroupName(fileName: string): string {
 }
 
 export function normalizeDateKey(value: string): string {
-  return value.trim().replace(/\s+/g, ' ').toLocaleLowerCase('en-US')
+  return toReadableDateValue(value).toLocaleLowerCase('en-US')
+}
+
+export function toReadableDateValue(value: string): string {
+  return value
+    .replace(/&(?:nbsp|#0*(?:32|160)|#x0*(?:20|a0));/gi, ' ')
+    .replace(/\u00a0/g, ' ')
+    .trim()
+    .replace(/\s+/g, ' ')
 }
 
 const MONTH = '(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\\.?'
@@ -24,8 +37,8 @@ const DAY = '(?:0?[1-9]|[12]\\d|3[01])(?:st|nd|rd|th)?'
 const YEAR = '(?:(?:19|20)\\d{2})'
 
 const DATE_PATTERNS = [
-  new RegExp(`\\b${MONTH}\\s+${DAY}(?:\\s*,?\\s*${YEAR})?\\b`, 'gi'),
-  new RegExp(`\\b${DAY}\\s+(?:of\\s+)?${MONTH}(?:\\s*,?\\s*${YEAR})?\\b`, 'gi'),
+  new RegExp(`\\b${MONTH}${DATE_SPACE}${DAY}(?:${OPTIONAL_DATE_SPACE},?${OPTIONAL_DATE_SPACE}${YEAR})?\\b`, 'gi'),
+  new RegExp(`\\b${DAY}${DATE_SPACE}(?:of${DATE_SPACE})?${MONTH}(?:${OPTIONAL_DATE_SPACE},?${OPTIONAL_DATE_SPACE}${YEAR})?\\b`, 'gi'),
   new RegExp(`\\b${YEAR}[-/.](?:0?[1-9]|1[0-2])[-/.](?:0?[1-9]|[12]\\d|3[01])\\b`, 'g'),
   new RegExp(`\\b(?:0?[1-9]|[12]\\d|3[01])[-/.](?:0?[1-9]|1[0-2])[-/.]${YEAR}\\b`, 'g'),
 ]
@@ -59,10 +72,11 @@ const htmlToReadableText = (html: string) => decodeHtmlEntities(html
   .trim()
 
 export function getDateContexts(html: string, dateValue: string): DateContext[] {
-  if (!dateValue.trim()) return []
+  const readableDateValue = toReadableDateValue(dateValue)
+  if (!readableDateValue) return []
 
   const text = htmlToReadableText(html)
-  const pattern = new RegExp(escapeRegExp(dateValue).replace(/\s+/g, '[\\s\\u00a0]+'), 'gi')
+  const pattern = new RegExp(escapeRegExp(readableDateValue).replace(/\s+/g, '[\\s\\u00a0]+'), 'gi')
   const contexts: DateContext[] = []
 
   for (const match of text.matchAll(pattern)) {
@@ -137,5 +151,9 @@ export function replaceDates(html: string, replacements: ReadonlyMap<string, str
 
   const escapedOriginals = originals.map(escapeRegExp)
   const pattern = new RegExp(escapedOriginals.join('|'), 'g')
-  return html.replace(pattern, (original) => replacements.get(original) ?? original)
+  return html.replace(pattern, (original) => {
+    const replacement = replacements.get(original) ?? original
+    const htmlSpace = original.match(new RegExp(HTML_SPACE_ENTITY_SOURCE, 'i'))?.[0]
+    return htmlSpace ? replacement.replace(/\s+/g, htmlSpace) : replacement
+  })
 }

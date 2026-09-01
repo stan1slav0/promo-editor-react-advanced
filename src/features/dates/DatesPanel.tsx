@@ -10,6 +10,7 @@ import {
   getDateGroupName,
   normalizeDateKey,
   replaceDates,
+  toReadableDateValue,
   type DateContext,
   type DetectedDate,
 } from './dateUtils'
@@ -97,7 +98,7 @@ function aggregateDates(files: AnalyzedFile[]): AggregatedDate[] {
       } else {
         aggregated.set(key, {
           key,
-          displayValue: date.value,
+          displayValue: toReadableDateValue(date.value),
           count: date.count,
           fileIds: new Set([file.id]),
         })
@@ -403,7 +404,7 @@ export function DatesPanel() {
       for (const file of analyzed) {
         for (const date of file.dates) {
           const key = normalizeDateKey(date.value)
-          initialReplacements[key] ??= date.value
+          initialReplacements[key] ??= toReadableDateValue(date.value)
         }
       }
 
