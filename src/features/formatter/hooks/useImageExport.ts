@@ -2,7 +2,12 @@ import { useCallback, useEffect, useRef, type RefObject } from 'react'
 import { saveAs } from 'file-saver'
 import { toast, type Id } from 'react-toastify'
 import { DEFAULT_IMAGE_CONCURRENCY } from '../../../utils/config'
-import { getBlobFromSrc, toJpeg600 } from '../../../utils/imageProcessor'
+import {
+  getBlobFromSrc,
+  getCategoryImageMaxWidth,
+  processImageForEmail,
+  setExportImageWidth,
+} from '../../../utils/imageProcessor'
 import { uploadImagesToS3 } from '../../../utils/s3Uploader'
 import { formatPromoName } from './useConversion'
 
@@ -21,6 +26,7 @@ export function useImageExport({
 }: UseImageExportOptions) {
   const operationControllerRef = useRef<AbortController | null>(null)
   const s3ToastIdRef = useRef<Id | null>(null)
+  const maxImageWidth = getCategoryImageMaxWidth(activeCategory)
 
   const dismissS3Toast = useCallback(() => {
     if (s3ToastIdRef.current === null) return
@@ -64,7 +70,12 @@ export function useImageExport({
         const blob = await getBlobFromSrc(source, controller.signal)
         if (!blob) continue
 
-        const { outBlob } = await toJpeg600(blob, '#ffffff')
+        const { outBlob, targetW } = await processImageForEmail(
+          blob,
+          maxImageWidth,
+          '#ffffff',
+        )
+        setExportImageWidth(image, targetW)
         controller.signal.throwIfAborted()
         saveAs(outBlob, `${promoName}_img-${imageIndex}.jpg`)
         imageIndex += 1
@@ -79,7 +90,7 @@ export function useImageExport({
         operationControllerRef.current = null
       }
     }
-  }, [activeCategory, cancelImageExport, dismissS3Toast, editorRef, fileName, isS3Enabled])
+  }, [activeCategory, cancelImageExport, dismissS3Toast, editorRef, fileName, isS3Enabled, maxImageWidth])
 
   useEffect(() => () => {
     cancelImageExport()

@@ -104,7 +104,11 @@ export default function Formatter({
     updateImageCount,
     scheduleAnalysis,
     resetImageState,
-  } = useEditorImages({ editorRef, onContentChange: setEditorContent })
+  } = useEditorImages({
+    editorRef,
+    onContentChange: setEditorContent,
+    activeCategory,
+  })
 
   const handleSyncScroll = useSyncedScroll(
     editorRef as ScrollableRef,

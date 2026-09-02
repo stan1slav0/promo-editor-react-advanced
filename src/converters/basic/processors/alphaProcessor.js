@@ -1,5 +1,6 @@
 import prettier from 'prettier/standalone'
 import prettierPluginHtml from 'prettier/plugins/html'
+import { getExportImageWidthFromTag } from '../../../utils/imageProcessor'
 
 // Синий спектр цветов для кликабельных ссылок Alpha
 const blueColors = [
@@ -435,6 +436,7 @@ class AlphaProcessor {
       const altMatch = match.match(/alt=["']([^"']*)["']/i)
       const rawAlt = altMatch && altMatch[1] ? altMatch[1] : 'video'
       const imageAlt = rawAlt.replace(/"/g, '&quot;').trim()
+      const width = getExportImageWidthFromTag(match, 562)
 
       const dynamicSrc = this.generateDynamicImgSrc(currentIdx++, promoNameFormatted)
       return `      </div>
@@ -445,8 +447,8 @@ class AlphaProcessor {
                            <a href="urlhere" target="_blank">
                                <img alt="${imageAlt}" height="auto"
                                    src="${dynamicSrc}"
-                                   style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;max-width: 562px;font-size:13px;"
-                                   width="562"/>
+                                   style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;max-width: ${width}px;font-size:13px;"
+                                   width="${width}"/>
                            </a>
                        </td>
                     </tr>

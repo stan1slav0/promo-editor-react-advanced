@@ -531,6 +531,7 @@ export function renderNode(
       const opts: ImageOpts = {
         src: node.props.src,
         alt: node.props.alt,
+        width: node.props.width,
         tightBefore: node.props.tightBefore,
         tightAfter: node.props.tightAfter,
       };

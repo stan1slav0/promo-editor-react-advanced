@@ -4,13 +4,22 @@ import { toast } from 'react-toastify'
 import type { Id } from 'react-toastify'
 import { DEFAULT_IMAGE_CONCURRENCY } from '../../../utils/config'
 import { generateAltTextsForImages } from '../../../utils/imageAnalyzer'
+import {
+  getCategoryImageMaxWidth,
+  setExportImageWidthFromNaturalSize,
+} from '../../../utils/imageProcessor'
 
 interface UseEditorImagesOptions {
   editorRef: RefObject<HTMLDivElement | null>
   onContentChange: (html: string) => void
+  activeCategory: string
 }
 
-export function useEditorImages({ editorRef, onContentChange }: UseEditorImagesOptions) {
+export function useEditorImages({
+  editorRef,
+  onContentChange,
+  activeCategory,
+}: UseEditorImagesOptions) {
   const [hasImages, setHasImages] = useState(false)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const isAnalyzingRef = useRef(false)
@@ -18,10 +27,21 @@ export function useEditorImages({ editorRef, onContentChange }: UseEditorImagesO
   const analysisToastRef = useRef<Id | null>(null)
   const analysisControllerRef = useRef<AbortController | null>(null)
   const mountedRef = useRef(true)
+  const maxImageWidth = getCategoryImageMaxWidth(activeCategory)
 
   const updateImageCount = useCallback(() => {
     setHasImages(Boolean(editorRef.current?.querySelector('img')))
   }, [editorRef])
+
+  const updateImageDimensions = useCallback(() => {
+    if (!editorRef.current) return
+
+    let changed = false
+    for (const image of editorRef.current.querySelectorAll('img')) {
+      changed = setExportImageWidthFromNaturalSize(image, maxImageWidth) || changed
+    }
+    if (changed) onContentChange(editorRef.current.innerHTML)
+  }, [editorRef, maxImageWidth, onContentChange])
 
   const analyzeImages = useCallback(async () => {
     if (!editorRef.current || isAnalyzingRef.current) return
@@ -97,14 +117,24 @@ export function useEditorImages({ editorRef, onContentChange }: UseEditorImagesO
       if (isAnalyzingRef.current) return
       if (!mutations.some((mutation) => mutation.type === 'childList')) return
       updateImageCount()
+      updateImageDimensions()
       scheduleAnalysis()
     })
 
     observer.observe(editor, { childList: true, subtree: true })
 
+    const handleImageLoad = (event: Event) => {
+      if (!(event.target instanceof HTMLImageElement)) return
+      if (!setExportImageWidthFromNaturalSize(event.target, maxImageWidth)) return
+      onContentChange(editor.innerHTML)
+    }
+    editor.addEventListener('load', handleImageLoad, true)
+    updateImageDimensions()
+
     return () => {
       mountedRef.current = false
       observer.disconnect()
+      editor.removeEventListener('load', handleImageLoad, true)
       analysisControllerRef.current?.abort()
       if (analysisTimeoutRef.current !== null) {
         window.clearTimeout(analysisTimeoutRef.current)
@@ -113,7 +143,7 @@ export function useEditorImages({ editorRef, onContentChange }: UseEditorImagesO
         toast.dismiss(analysisToastRef.current)
       }
     }
-  }, [editorRef, scheduleAnalysis, updateImageCount])
+  }, [editorRef, maxImageWidth, onContentChange, scheduleAnalysis, updateImageCount, updateImageDimensions])
 
   return {
     hasImages,

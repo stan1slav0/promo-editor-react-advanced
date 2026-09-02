@@ -1,5 +1,6 @@
 import prettier from 'prettier/standalone'
 import prettierPluginHtml from 'prettier/plugins/html'
+import { getExportImageWidthFromTag } from '../../../utils/imageProcessor'
 
 const blueColors = [
   '#0000FF', 'rgb\\(0,\\s*0,\\s*255\\)', '#CFE2F3', 'rgb\\(207,\\s*226,\\s*243\\)',
@@ -445,6 +446,7 @@ class RedProcessor {
       const altMatch = match.match(/alt=["']([^"']*)["']/i)
       const rawAlt = altMatch && altMatch[1] ? altMatch[1] : 'video'
       const imageAlt = rawAlt.replace(/"/g, '&quot;').trim()
+      const width = getExportImageWidthFromTag(match, 564)
 
       const dynamicSrc = this.generateDynamicImgSrc(currentIdx++, promoNameFormatted)
 
@@ -456,8 +458,8 @@ class RedProcessor {
                            <a href="urlhere" target="_blank">
                                <img alt="${imageAlt}" height="auto"
                                     src="${dynamicSrc}"
-                                    style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;max-width: 564px;font-size:12px;"
-                                    width="564"/>
+                                    style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;max-width: ${width}px;font-size:12px;"
+                                    width="${width}"/>
                            </a>
                        </td>
                     </tr>

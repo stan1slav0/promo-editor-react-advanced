@@ -50,6 +50,7 @@ export function useFormatterDownloads({
 
   const downloadHTML = useCallback(async () => {
     try {
+      await processImages()
       const result = await generateHTMLCode()
       if (!result) return
 
@@ -60,7 +61,6 @@ export function useFormatterDownloads({
       toast.success(<span><strong>{result.formattedName}</strong> downloaded</span>, {
         autoClose: 3000,
       })
-      await processImages()
     } catch (error) {
       if (!isAbortError(error)) console.error('Error during HTML export:', error)
     }
@@ -68,6 +68,7 @@ export function useFormatterDownloads({
 
   const downloadAll = useCallback(async () => {
     try {
+      await processImages()
       const htmlResult = await generateHTMLCode()
       if (!htmlResult) return
 
@@ -93,7 +94,6 @@ export function useFormatterDownloads({
         </span>,
         { autoClose: 3000 },
       )
-      await processImages()
     } catch (error) {
       if (!isAbortError(error)) console.error('Error downloading all items:', error)
     }

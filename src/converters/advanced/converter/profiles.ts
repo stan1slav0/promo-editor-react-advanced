@@ -43,7 +43,7 @@ const terraProfile: TokensOverride = {
     blockPadY: 15,
     sidePadding: 21,
     spacerPx: 15,
-    placeholderImageWidth: 400,
+    placeholderImageWidth: 560,
     signatureImageWidthPx: 220,
     footerPadTopPx: 25,
     footerPadBottomPx: 15,

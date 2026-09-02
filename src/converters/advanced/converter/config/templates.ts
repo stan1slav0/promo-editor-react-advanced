@@ -100,6 +100,7 @@ export interface GridOpts {
 export interface ImageOpts {
   src?: string
   alt?: string
+  width?: number
   tightBefore?: boolean
   tightAfter?: boolean
 }
@@ -343,7 +344,11 @@ export function imageRowHtml(
   const { tightBefore, tightAfter } = opts
   const padTop = tightBefore ? 0 : tok.layout.blockPadY
   const padBottom = tightAfter ? 0 : tok.layout.blockPadY
-  const w = tok.layout.placeholderImageWidth - 2 * padX
+  const fallbackWidth = tok.layout.placeholderImageWidth - 2 * padX
+  const requestedWidth = opts.width
+  const w = requestedWidth
+    ? Math.min(tok.layout.placeholderImageWidth, Math.max(200, requestedWidth))
+    : fallbackWidth
   const padXCss = padX ? `padding-left:${padX}px;padding-right:${padX}px;` : ""
   const src = opts.src || tok.placeholderImageSrc
   const alt = opts.alt ?? tok.placeholderImageAlt

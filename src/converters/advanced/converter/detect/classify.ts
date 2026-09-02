@@ -357,7 +357,11 @@ export function classify(
     } else if (node.type === "img") {
       const comp: ComponentNode = {
         kind: "image",
-        props: { src: node.src, alt: node.alt },
+        props: {
+          src: node.src,
+          alt: node.alt,
+          width: node.width,
+        },
       };
       const last = result[result.length - 1];
       if (last?.kind === "paragraph" && last.props.tightNext === true) {

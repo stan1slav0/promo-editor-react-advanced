@@ -1,5 +1,6 @@
 import prettier from 'prettier/standalone'
 import parserHtml from 'prettier/plugins/html'
+import { getExportImageWidthFromTag } from '../../../utils/imageProcessor'
 
 export class FinanceProcessor {
   constructor(categoryName = 'finance') {
@@ -784,6 +785,7 @@ export class FinanceProcessor {
       const altMatch = match.match(/alt=["']([^"']*)["']/i)
       const rawAlt = altMatch && altMatch[1] ? altMatch[1] : 'video'
       const imageAlt = rawAlt.replace(/"/g, '&quot;').trim()
+      const width = getExportImageWidthFromTag(match, 560)
 
       const dynamicSrc = this.generateDynamicImgSrc(currentImgIdx++, promoName, this.categoryName)
 
@@ -792,8 +794,8 @@ export class FinanceProcessor {
                 <a href="urlhere" target="_blank">
                     <img alt="${imageAlt}" height="auto"
                                     src="${dynamicSrc}"
-                                    style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;max-width: 560px;font-size:13px;"
-                                    width="560"/>
+                                    style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;max-width: ${width}px;font-size:13px;"
+                                    width="${width}"/>
                 </a>
             </td></tr>
             <tr><td style="font-family:'Roboto', Arial, Helvetica, sans-serif;font-size:18px;font-style:normal;font-weight:normal;line-height:1.5;text-align:left;color:#000000;padding-top: 14px; padding-bottom: 14px;">
@@ -816,6 +818,7 @@ export class FinanceProcessor {
       const altMatch = match.match(/alt=["']([^"']*)["']/i)
       const rawAlt = altMatch && altMatch[1] ? altMatch[1] : 'video'
       const imageAlt = rawAlt.replace(/"/g, '&quot;').trim()
+      const width = getExportImageWidthFromTag(match, 550)
 
       const dynamicSrc = this.generateDynamicImgSrc(currentImgIdx++, promoName, this.categoryName)
 
@@ -827,9 +830,9 @@ export class FinanceProcessor {
                         <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">
                           <tbody>
                             <tr>
-                              <td style="width:550px;">
+                              <td style="width:${width}px;">
                                 <a href="urlhere" target="_blank">
-                                  <img alt="${imageAlt}" src="${dynamicSrc}" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="550" height="auto" />
+                                  <img alt="${imageAlt}" src="${dynamicSrc}" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="${width}" height="auto" />
                                 </a>
                               </td>
                             </tr>

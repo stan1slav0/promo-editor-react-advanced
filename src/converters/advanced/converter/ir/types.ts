@@ -31,6 +31,7 @@ export interface ImageNode {
   type: "img";
   src: string;
   alt?: string;
+  width?: number;
 }
 export interface BorderSide {
   color: string;
@@ -221,6 +222,7 @@ export interface ProgressBarProps {
 export interface ImageProps {
   src: string;
   alt?: string;
+  width?: number;
   tightBefore?: boolean;
   tightAfter?: boolean;
 }

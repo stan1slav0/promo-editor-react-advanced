@@ -6,6 +6,82 @@ export interface ProcessedImage {
   targetH: number
 }
 
+export interface ImageDimensions {
+  width: number
+  height: number
+}
+
+export const MIN_IMAGE_WIDTH = 200
+export const DEFAULT_MAX_IMAGE_WIDTH = 560
+export const EXPORT_IMAGE_WIDTH_ATTRIBUTE = 'data-export-width'
+
+export function getCategoryImageMaxWidth(category: string): number {
+  switch (category.toLowerCase()) {
+    case 'alpha':
+      return 562
+    case 'red':
+      return 564
+    default:
+      return DEFAULT_MAX_IMAGE_WIDTH
+  }
+}
+
+export function getTargetImageDimensions(
+  sourceWidth: number,
+  sourceHeight: number,
+  maxWidth = DEFAULT_MAX_IMAGE_WIDTH,
+): ImageDimensions {
+  if (sourceWidth <= 0 || sourceHeight <= 0 || maxWidth < MIN_IMAGE_WIDTH) {
+    throw new Error('Image dimensions must be greater than zero')
+  }
+
+  const width = Math.min(maxWidth, Math.max(MIN_IMAGE_WIDTH, sourceWidth))
+  const height = Math.round(sourceHeight * (width / sourceWidth))
+  return { width, height }
+}
+
+export function setExportImageWidth(
+  image: HTMLImageElement,
+  width: number,
+): boolean {
+  const nextWidth = String(Math.round(width))
+  const changed = image.getAttribute(EXPORT_IMAGE_WIDTH_ATTRIBUTE) !== nextWidth
+
+  image.setAttribute(EXPORT_IMAGE_WIDTH_ATTRIBUTE, nextWidth)
+  return changed
+}
+
+export function setExportImageWidthFromNaturalSize(
+  image: HTMLImageElement,
+  maxWidth = DEFAULT_MAX_IMAGE_WIDTH,
+): boolean {
+  if (!image.naturalWidth || !image.naturalHeight) return false
+  const { width } = getTargetImageDimensions(
+    image.naturalWidth,
+    image.naturalHeight,
+    maxWidth,
+  )
+  return setExportImageWidth(image, width)
+}
+
+function readPositiveIntegerAttribute(tag: string, attribute: string): number | null {
+  const match = tag.match(new RegExp(`\\b${attribute}=["'](\\d+)["']`, 'i'))
+  if (!match) return null
+  const value = Number.parseInt(match[1], 10)
+  return value > 0 ? value : null
+}
+
+export function getExportImageWidthFromTag(
+  tag: string,
+  fallbackWidth: number,
+  maxWidth = fallbackWidth,
+): number {
+  const storedWidth = readPositiveIntegerAttribute(tag, EXPORT_IMAGE_WIDTH_ATTRIBUTE)
+  if (!storedWidth) return fallbackWidth
+
+  return Math.min(maxWidth, Math.max(MIN_IMAGE_WIDTH, storedWidth))
+}
+
 export async function getBlobFromSrc(
   src: string,
   signal?: AbortSignal,
@@ -21,16 +97,20 @@ export async function getBlobFromSrc(
   }
 }
 
-export async function toJpeg600(
+export async function processImageForEmail(
   blob: Blob,
+  maxWidth: number,
   bgColor = '#ffffff',
   quality: number | string = 0.82,
 ): Promise<ProcessedImage> {
   const bitmap = await createImageBitmap(blob)
 
   try {
-    const targetW = Math.min(600, bitmap.width)
-    const targetH = Math.round(bitmap.height * (targetW / bitmap.width))
+    const { width: targetW, height: targetH } = getTargetImageDimensions(
+      bitmap.width,
+      bitmap.height,
+      maxWidth,
+    )
     const canvas = document.createElement('canvas')
     canvas.width = targetW
     canvas.height = targetH

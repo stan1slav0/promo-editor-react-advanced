@@ -3,7 +3,12 @@ import type { Id, TypeOptions } from 'react-toastify'
 import { mapWithConcurrency } from './asyncPool'
 import { API_PROXY_URL, DEFAULT_IMAGE_CONCURRENCY } from './config'
 import { isAbortError } from './errors'
-import { getBlobFromSrc, toJpeg600 } from './imageProcessor'
+import {
+  getBlobFromSrc,
+  getCategoryImageMaxWidth,
+  processImageForEmail,
+  setExportImageWidth,
+} from './imageProcessor'
 import { getLicenseKey } from './licenseStorage'
 
 interface PreparedImage {
@@ -105,6 +110,7 @@ export async function uploadImagesToS3(
   }
 
   const imageList = Array.from(images)
+  const maxImageWidth = getCategoryImageMaxWidth(activeCategory)
   const imageWord = imageList.length === 1 ? 'image' : 'images'
   const destination = getDestination(activeCategory, letters, digits)
   updateLoadingToast(toastId, `⚙️ Preparing ${imageList.length} ${imageWord}...`)
@@ -120,7 +126,12 @@ export async function uploadImagesToS3(
         try {
           const sourceBlob = await getBlobFromSrc(src, signal)
           if (!sourceBlob) return null
-          const { outBlob } = await toJpeg600(sourceBlob, '#ffffff')
+          const { outBlob, targetW } = await processImageForEmail(
+            sourceBlob,
+            maxImageWidth,
+            '#ffffff',
+          )
+          setExportImageWidth(image, targetW)
           return { fileName: `img-${index + 1}.jpg`, blob: outBlob }
         } catch (error) {
           if (isAbortError(error)) throw error

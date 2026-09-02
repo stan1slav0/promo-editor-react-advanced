@@ -266,7 +266,11 @@ function flattenCellForAlertBand(
     } else if (child.type === "img") {
       images.push({
         atLine: lines.length,
-        props: { src: child.src, alt: child.alt },
+        props: {
+          src: child.src,
+          alt: child.alt,
+          width: child.width,
+        },
       });
       prevP = null;
     }

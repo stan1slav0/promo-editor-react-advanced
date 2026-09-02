@@ -232,7 +232,16 @@ function parseImage(el: Element, warn?: WarnFn): ImageNode | null {
     return null;
   }
   const alt = el.getAttribute("alt") ?? undefined;
-  return { type: "img", src, alt };
+  const parseDimension = (attribute: string): number | undefined => {
+    const value = Number.parseInt(el.getAttribute(attribute) ?? "", 10);
+    return value > 0 ? value : undefined;
+  };
+  return {
+    type: "img",
+    src,
+    alt,
+    width: parseDimension("data-export-width"),
+  };
 }
 function extractImages(
   el: Element,
