@@ -90,6 +90,87 @@ const naturalCompare = (left: string, right: string) => left.localeCompare(
   { numeric: true, sensitivity: 'base' },
 )
 
+const escapePreviewPattern = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+function createHighlightedPreview(html: string, dateValues: string[]): string {
+  const previewDocument = new DOMParser().parseFromString(html, 'text/html')
+  const uniqueValues = new Map<string, string>()
+
+  for (const value of dateValues) {
+    const readableValue = toReadableDateValue(value)
+    if (readableValue) uniqueValues.set(readableValue.toLocaleLowerCase('en-US'), readableValue)
+  }
+
+  const alternatives = [...uniqueValues.values()]
+    .sort((left, right) => right.length - left.length)
+    .map((value) => escapePreviewPattern(value).replace(/\s+/g, '[\\s\\u00a0]+'))
+
+  if (alternatives.length > 0) {
+    const pattern = new RegExp(`(?<![A-Za-z0-9])(?:${alternatives.join('|')})(?![A-Za-z0-9])`, 'gi')
+    const walker = previewDocument.createTreeWalker(previewDocument.body, NodeFilter.SHOW_TEXT)
+    const textNodes: Text[] = []
+
+    while (walker.nextNode()) textNodes.push(walker.currentNode as Text)
+
+    for (const textNode of textNodes) {
+      if (textNode.parentElement?.closest('script, style, noscript, textarea, template')) continue
+      const matches = [...textNode.data.matchAll(pattern)]
+      if (matches.length === 0) continue
+
+      const fragment = previewDocument.createDocumentFragment()
+      let cursor = 0
+      for (const match of matches) {
+        const start = match.index
+        fragment.append(textNode.data.slice(cursor, start))
+        const marker = previewDocument.createElement('mark')
+        marker.className = 'promo-editor-date-highlight'
+        marker.textContent = match[0]
+        fragment.append(marker)
+        cursor = start + match[0].length
+      }
+      fragment.append(textNode.data.slice(cursor))
+      textNode.replaceWith(fragment)
+    }
+  }
+
+  const previewStyle = previewDocument.createElement('style')
+  previewStyle.textContent = `
+    .promo-editor-date-highlight {
+      padding: 1px 3px !important;
+      border-radius: 4px !important;
+      outline: 2px solid rgba(255, 179, 71, .95) !important;
+      color: inherit !important;
+      background: rgba(255, 213, 79, .48) !important;
+      box-shadow: 0 0 0 4px rgba(255, 179, 71, .16) !important;
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
+    }
+    .promo-editor-preview-badge {
+      position: fixed !important;
+      z-index: 2147483647 !important;
+      top: 12px !important;
+      right: 12px !important;
+      padding: 7px 10px !important;
+      border: 1px solid rgba(255, 213, 79, .72) !important;
+      border-radius: 9px !important;
+      color: #fff !important;
+      background: rgba(24, 21, 29, .92) !important;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, .28) !important;
+      font: 700 11px/1.2 Arial, sans-serif !important;
+      letter-spacing: .04em !important;
+      pointer-events: none !important;
+    }
+  `
+  previewDocument.head.append(previewStyle)
+
+  const previewBadge = previewDocument.createElement('div')
+  previewBadge.className = 'promo-editor-preview-badge'
+  previewBadge.textContent = 'Highlighted dates · Preview only'
+  previewDocument.body.append(previewBadge)
+
+  return `<!doctype html>\n${previewDocument.documentElement.outerHTML}`
+}
+
 function aggregateDates(files: AnalyzedFile[]): AggregatedDate[] {
   const aggregated = new Map<string, AggregatedDate>()
 
@@ -479,6 +560,26 @@ export function DatesPanel() {
     )
   }, [groupOverrides, replacements])
 
+  const previewFile = useCallback((file: AnalyzedFile) => {
+    const groupId = file.groupName.toLocaleLowerCase('en-US')
+    const previewDates = file.dates.map((date) => {
+      const key = normalizeDateKey(date.value)
+      return groupOverrides[groupId]?.[key] || replacements[key] || date.value
+    })
+    const previewContent = createHighlightedPreview(getUpdatedContent(file), previewDates)
+    const blob = new Blob([previewContent], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const previewWindow = window.open(url, '_blank')
+
+    if (previewWindow) {
+      previewWindow.opener = null
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000)
+    } else {
+      URL.revokeObjectURL(url)
+      toast.error('Allow pop-ups to open the HTML preview')
+    }
+  }, [getUpdatedContent, groupOverrides, replacements])
+
   const downloadGroupFiles = (group: FileGroup) => {
     for (const file of group.files) {
       saveAs(
@@ -705,7 +806,18 @@ export function DatesPanel() {
                         <div
                           className={`dates-file-item ${file.dates.length === 0 ? 'is-no-dates' : ''}`}
                           key={file.id}
-                          title={file.dates.length === 0 ? 'No supported dates found. Review this file manually.' : undefined}
+                          role="button"
+                          tabIndex={0}
+                          title={file.dates.length === 0
+                            ? 'No supported dates found. Click to review this file in a new tab.'
+                            : 'Open HTML preview in a new tab'}
+                          onClick={() => previewFile(file)}
+                          onKeyDown={(event) => {
+                            if (event.target !== event.currentTarget) return
+                            if (event.key !== 'Enter' && event.key !== ' ') return
+                            event.preventDefault()
+                            previewFile(file)
+                          }}
                         >
                           <span className={`dates-file-item__type dates-file-item__type_${getVariantLabel(file.name).toLowerCase()}`}>
                             {getVariantLabel(file.name)}
@@ -721,7 +833,10 @@ export function DatesPanel() {
                             type="button"
                             className="dates-file-item__remove"
                             aria-label={`Remove ${file.name}`}
-                            onClick={() => removeFile(file.id)}
+                            onClick={(event) => {
+                              event.stopPropagation()
+                              removeFile(file.id)
+                            }}
                           >×</button>
                         </div>
                       ))}
@@ -925,6 +1040,15 @@ export function DatesPanel() {
                             <div
                               className={`dates-group-file ${file.dates.length === 0 ? 'is-no-dates' : ''}`}
                               key={file.id}
+                              role="button"
+                              tabIndex={0}
+                              title="Open HTML preview in a new tab"
+                              onClick={() => previewFile(file)}
+                              onKeyDown={(event) => {
+                                if (event.key !== 'Enter' && event.key !== ' ') return
+                                event.preventDefault()
+                                previewFile(file)
+                              }}
                             >
                               <div className="dates-group-file__header">
                                 <span className={`dates-group-file__type dates-group-file__type_${getVariantLabel(file.name).toLowerCase()}`}>
@@ -945,6 +1069,11 @@ export function DatesPanel() {
                                         ? <span className="dates-context-snippet dates-context-snippet_warning">No supported dates found · Review manually</span>
                                         : <span className="dates-context-snippet dates-context-snippet_empty">No visible date text found</span>}
                                   </span>
+                                </span>
+                                <span className="dates-group-file__open" aria-hidden="true">
+                                  <svg viewBox="0 0 16 16">
+                                    <path d="M6.5 3.5h6v6M12.2 3.8 6.8 9.2M11.5 10.5v1a1 1 0 0 1-1 1h-7v-7a1 1 0 0 1 1-1h1" />
+                                  </svg>
                                 </span>
                               </div>
                             </div>

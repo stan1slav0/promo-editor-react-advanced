@@ -1561,6 +1561,17 @@ input[type=number] {
   border-radius: 12px;
   color: rgba(255, 255, 255, .82);
   background: rgba(255, 255, 255, .035);
+  cursor: pointer;
+  transition: filter .18s ease, outline-color .18s ease;
+
+  &:hover {
+    filter: brightness(1.12);
+  }
+
+  &:focus-visible {
+    outline: 1px solid rgba(107, 248, 249, .36);
+    outline-offset: -1px;
+  }
 
   &.is-no-dates {
     background: linear-gradient(90deg, rgba(255, 174, 76, .085), rgba(255, 174, 76, .025));
@@ -2011,6 +2022,17 @@ input[type=number] {
   border: 1px solid rgba(255, 255, 255, .035);
   border-radius: 10px;
   background: rgba(255, 255, 255, .025);
+  cursor: pointer;
+  transition: filter .18s ease, border-color .18s ease;
+
+  &:hover {
+    filter: brightness(1.12);
+  }
+
+  &:focus-visible {
+    outline: 1px solid rgba(107, 248, 249, .36);
+    outline-offset: -1px;
+  }
 
   &.is-no-dates {
     border-color: rgba(255, 190, 107, .18);
@@ -2020,7 +2042,7 @@ input[type=number] {
 
   &__header {
     display: grid;
-    grid-template-columns: 42px minmax(0, 1fr);
+    grid-template-columns: 42px minmax(0, 1fr) 26px;
     min-height: 50px;
     padding: 8px;
     align-items: start;
@@ -2073,6 +2095,25 @@ input[type=number] {
       border-radius: 0 6px 6px 0;
       background: rgba(107, 248, 249, .02);
       overflow-wrap: anywhere;
+    }
+  }
+
+  &__open {
+    display: grid;
+    width: 26px;
+    height: 26px;
+    place-items: center;
+    border-radius: 7px;
+    color: rgba(255, 255, 255, .4);
+    background: rgba(255, 255, 255, .045);
+
+    svg {
+      width: 14px;
+      fill: none;
+      stroke: currentColor;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 1.35;
     }
   }
 

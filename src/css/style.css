@@ -1417,6 +1417,15 @@ input[type=number] {
   border-radius: 12px;
   color: rgba(255, 255, 255, 0.82);
   background: rgba(255, 255, 255, 0.035);
+  cursor: pointer;
+  transition: filter 0.18s ease, outline-color 0.18s ease;
+}
+.dates-file-item:hover {
+  filter: brightness(1.12);
+}
+.dates-file-item:focus-visible {
+  outline: 1px solid rgba(107, 248, 249, 0.36);
+  outline-offset: -1px;
 }
 .dates-file-item.is-no-dates {
   background: linear-gradient(90deg, rgba(255, 174, 76, 0.085), rgba(255, 174, 76, 0.025));
@@ -1820,6 +1829,15 @@ input[type=number] {
   border: 1px solid rgba(255, 255, 255, 0.035);
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.025);
+  cursor: pointer;
+  transition: filter 0.18s ease, border-color 0.18s ease;
+}
+.dates-group-file:hover {
+  filter: brightness(1.12);
+}
+.dates-group-file:focus-visible {
+  outline: 1px solid rgba(107, 248, 249, 0.36);
+  outline-offset: -1px;
 }
 .dates-group-file.is-no-dates {
   border-color: rgba(255, 190, 107, 0.18);
@@ -1828,7 +1846,7 @@ input[type=number] {
 }
 .dates-group-file__header {
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr);
+  grid-template-columns: 42px minmax(0, 1fr) 26px;
   min-height: 50px;
   padding: 8px;
   align-items: start;
@@ -1876,6 +1894,23 @@ input[type=number] {
   border-radius: 0 6px 6px 0;
   background: rgba(107, 248, 249, 0.02);
   overflow-wrap: anywhere;
+}
+.dates-group-file__open {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border-radius: 7px;
+  color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.045);
+}
+.dates-group-file__open svg {
+  width: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.35;
 }
 
 .dates-context-snippet.dates-context-snippet_warning {
