@@ -108,28 +108,43 @@ function createHighlightedPreview(html: string, dateValues: string[]): string {
   if (alternatives.length > 0) {
     const pattern = new RegExp(`(?<![A-Za-z0-9])(?:${alternatives.join('|')})(?![A-Za-z0-9])`, 'gi')
     const walker = previewDocument.createTreeWalker(previewDocument.body, NodeFilter.SHOW_TEXT)
-    const textNodes: Text[] = []
+    const textNodes: Array<{ node: Text; start: number; end: number }> = []
+    let visibleText = ''
 
-    while (walker.nextNode()) textNodes.push(walker.currentNode as Text)
+    while (walker.nextNode()) {
+      const node = walker.currentNode as Text
+      if (node.parentElement?.closest('script, style, noscript, textarea, template')) continue
+      const start = visibleText.length
+      visibleText += node.data
+      textNodes.push({ node, start, end: visibleText.length })
+    }
+
+    const matches = [...visibleText.matchAll(pattern)].map((match) => ({
+      start: match.index,
+      end: match.index + match[0].length,
+    }))
 
     for (const textNode of textNodes) {
-      if (textNode.parentElement?.closest('script, style, noscript, textarea, template')) continue
-      const matches = [...textNode.data.matchAll(pattern)]
-      if (matches.length === 0) continue
+      const matchingSegments = matches
+        .filter((match) => match.start < textNode.end && match.end > textNode.start)
+        .map((match) => ({
+          start: Math.max(match.start, textNode.start) - textNode.start,
+          end: Math.min(match.end, textNode.end) - textNode.start,
+        }))
+      if (matchingSegments.length === 0) continue
 
       const fragment = previewDocument.createDocumentFragment()
       let cursor = 0
-      for (const match of matches) {
-        const start = match.index
-        fragment.append(textNode.data.slice(cursor, start))
+      for (const segment of matchingSegments) {
+        fragment.append(textNode.node.data.slice(cursor, segment.start))
         const marker = previewDocument.createElement('mark')
         marker.className = 'promo-editor-date-highlight'
-        marker.textContent = match[0]
+        marker.textContent = textNode.node.data.slice(segment.start, segment.end)
         fragment.append(marker)
-        cursor = start + match[0].length
+        cursor = segment.end
       }
-      fragment.append(textNode.data.slice(cursor))
-      textNode.replaceWith(fragment)
+      fragment.append(textNode.node.data.slice(cursor))
+      textNode.node.replaceWith(fragment)
     }
   }
 

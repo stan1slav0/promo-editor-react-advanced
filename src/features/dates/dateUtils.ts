@@ -26,6 +26,7 @@ export function normalizeDateKey(value: string): string {
 
 export function toReadableDateValue(value: string): string {
   return value
+    .replace(/<sup\b[^>]*>\s*(st|nd|rd|th)\s*<\/sup>/gi, '$1')
     .replace(/&(?:nbsp|#0*(?:32|160)|#x0*(?:20|a0));/gi, ' ')
     .replace(/\u00a0/g, ' ')
     .trim()
@@ -34,7 +35,8 @@ export function toReadableDateValue(value: string): string {
 
 const MONTH = '(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\\.?'
 const STANDALONE_MONTH = '(?:January|February|March|April|June|July|August|September|October|November|December|Jan\\.?|Feb\\.?|Mar\\.?|Apr\\.?|Jun\\.?|Jul\\.?|Aug\\.?|Sept?\\.?|Oct\\.?|Nov\\.?|Dec\\.?)'
-const DAY = '(?:0?[1-9]|[12]\\d|3[01])(?:st|nd|rd|th)?'
+const ORDINAL_SUFFIX = '(?:st|nd|rd|th|<sup\\b[^>]*>\\s*(?:st|nd|rd|th)\\s*</sup>)'
+const DAY = `(?:0?[1-9]|[12]\\d|3[01])${ORDINAL_SUFFIX}?`
 const YEAR = '(?:(?:19|20)\\d{2})'
 const STANDALONE_MAY_PATTERN = /\b(?:May|MAY)\b/g
 const MONTH_NUMBER_BY_PREFIX: Record<string, number> = {
@@ -53,7 +55,7 @@ const MONTH_NUMBER_BY_PREFIX: Record<string, number> = {
 }
 
 const DATE_PATTERNS = [
-  new RegExp(`\\b${MONTH}${DATE_SPACE}${DAY}(?:${OPTIONAL_DATE_SPACE},?${OPTIONAL_DATE_SPACE}${YEAR})?\\b`, 'gi'),
+  new RegExp(`\\b${MONTH}${DATE_SPACE}${DAY}(?:${OPTIONAL_DATE_SPACE},?${OPTIONAL_DATE_SPACE}${YEAR})?(?![A-Za-z0-9])`, 'gi'),
   new RegExp(`\\b${DAY}${DATE_SPACE}(?:of${DATE_SPACE})?${MONTH}(?:${OPTIONAL_DATE_SPACE},?${OPTIONAL_DATE_SPACE}${YEAR})?\\b`, 'gi'),
   new RegExp(`\\b${MONTH}(?:${DATE_SPACE}|${OPTIONAL_DATE_SPACE},${OPTIONAL_DATE_SPACE})${YEAR}\\b`, 'gi'),
   new RegExp(`\\b${YEAR}[-/.](?:0?[1-9]|1[0-2])[-/.](?:0?[1-9]|[12]\\d|3[01])\\b`, 'g'),
@@ -247,7 +249,17 @@ export function replaceDates(html: string, replacements: ReadonlyMap<string, str
       result += range.value
     } else {
       const htmlSpace = range.value.match(new RegExp(HTML_SPACE_ENTITY_SOURCE, 'i'))?.[0]
-      result += htmlSpace ? replacement.replace(/\s+/g, htmlSpace) : replacement
+      const replacementWithOriginalSpacing = htmlSpace ? replacement.replace(/\s+/g, htmlSpace) : replacement
+      const ordinalSup = range.value.match(/(<sup\b[^>]*>)(\s*)(st|nd|rd|th)(\s*)(<\/sup>)/i)
+
+      if (ordinalSup && !/<sup\b/i.test(replacementWithOriginalSpacing)) {
+        result += replacementWithOriginalSpacing.replace(
+          /(\b(?:0?[1-9]|[12]\d|3[01]))(st|nd|rd|th)\b/i,
+          (_, day: string, suffix: string) => `${day}${ordinalSup[1]}${ordinalSup[2]}${suffix}${ordinalSup[4]}${ordinalSup[5]}`,
+        )
+      } else {
+        result += replacementWithOriginalSpacing
+      }
     }
 
     cursor = range.end

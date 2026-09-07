@@ -103,6 +103,15 @@ describe('detectDates', () => {
     ])
   })
 
+  it('detects an ordinal suffix inside a styled superscript tag', () => {
+    const date = 'September 13<sup style="font-size: 14px;">th</sup>'
+
+    expect(detectDates(`Offer ends ${date}.`)).toEqual([
+      { value: date, count: 1 },
+    ])
+    expect(toReadableDateValue(date)).toBe('September 13th')
+  })
+
   it('keeps similar short, ordinal, and year dates as separate values', () => {
     expect(detectDates('November 30 / November 30th / November 30, 2026')).toEqual([
       { value: 'November 30', count: 1 },
@@ -224,5 +233,13 @@ describe('replaceDates', () => {
 
     expect(replaceDates(html, replacements))
       .toBe('April 30 / May 31st / June 1, 2027')
+  })
+
+  it('preserves styled superscript markup while replacing its ordinal suffix', () => {
+    const original = 'September 13<sup style="font-size: 14px;">th</sup>'
+    const replacements = new Map([[original, 'September 21st']])
+
+    expect(replaceDates(`<p>${original}</p>`, replacements))
+      .toBe('<p>September 21<sup style="font-size: 14px;">st</sup></p>')
   })
 })
