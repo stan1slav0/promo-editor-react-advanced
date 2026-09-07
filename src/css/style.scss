@@ -1508,7 +1508,8 @@ input[type=number] {
     gap: 6px;
   }
 
-  &__review {
+  &__review,
+  &__image {
     padding: 4px 6px;
     border-radius: 6px;
     color: rgba(255, 203, 129, .96);
@@ -1893,7 +1894,8 @@ input[type=number] {
     gap: 8px;
   }
 
-  &__review {
+  &__review,
+  &__image {
     color: rgba(255, 203, 129, .92);
     font-weight: 680;
   }

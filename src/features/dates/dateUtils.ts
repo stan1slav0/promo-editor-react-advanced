@@ -33,8 +33,24 @@ export function toReadableDateValue(value: string): string {
 }
 
 const MONTH = '(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\\.?'
+const STANDALONE_MONTH = '(?:January|February|March|April|June|July|August|September|October|November|December|Jan\\.?|Feb\\.?|Mar\\.?|Apr\\.?|Jun\\.?|Jul\\.?|Aug\\.?|Sept?\\.?|Oct\\.?|Nov\\.?|Dec\\.?)'
 const DAY = '(?:0?[1-9]|[12]\\d|3[01])(?:st|nd|rd|th)?'
 const YEAR = '(?:(?:19|20)\\d{2})'
+const STANDALONE_MAY_PATTERN = /\b(?:May|MAY)\b/g
+const MONTH_NUMBER_BY_PREFIX: Record<string, number> = {
+  jan: 1,
+  feb: 2,
+  mar: 3,
+  apr: 4,
+  may: 5,
+  jun: 6,
+  jul: 7,
+  aug: 8,
+  sep: 9,
+  oct: 10,
+  nov: 11,
+  dec: 12,
+}
 
 const DATE_PATTERNS = [
   new RegExp(`\\b${MONTH}${DATE_SPACE}${DAY}(?:${OPTIONAL_DATE_SPACE},?${OPTIONAL_DATE_SPACE}${YEAR})?\\b`, 'gi'),
@@ -42,12 +58,99 @@ const DATE_PATTERNS = [
   new RegExp(`\\b${MONTH}(?:${DATE_SPACE}|${OPTIONAL_DATE_SPACE},${OPTIONAL_DATE_SPACE})${YEAR}\\b`, 'gi'),
   new RegExp(`\\b${YEAR}[-/.](?:0?[1-9]|1[0-2])[-/.](?:0?[1-9]|[12]\\d|3[01])\\b`, 'g'),
   new RegExp(`\\b(?:0?[1-9]|[12]\\d|3[01])[-/.](?:0?[1-9]|1[0-2])[-/.]${YEAR}\\b`, 'g'),
+  new RegExp(`\\b${STANDALONE_MONTH}(?![A-Za-z])`, 'gi'),
+  STANDALONE_MAY_PATTERN,
+  new RegExp(`(?<!\\d[-/.])\\b${YEAR}\\b(?![-/.]\\d)`, 'g'),
 ]
+
+const HTML_IMAGE_PATTERN = /<(?:img|mj-image)\b/gi
+
+export function countHtmlImages(html: string): number {
+  return [...html.matchAll(HTML_IMAGE_PATTERN)].length
+}
+
+interface DateSortParts {
+  month: number
+  day: number
+  year: number
+}
+
+function getDateSortParts(value: string): DateSortParts {
+  const readable = toReadableDateValue(value)
+  const namedMonth = readable.match(/\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\.?\b/i)
+
+  if (namedMonth) {
+    const month = MONTH_NUMBER_BY_PREFIX[namedMonth[1].slice(0, 3).toLocaleLowerCase('en-US')] ?? 13
+    const beforeMonth = readable.slice(0, namedMonth.index).trim()
+    const afterMonth = readable.slice((namedMonth.index ?? 0) + namedMonth[0].length).trim()
+    const dayBefore = beforeMonth.match(/(?:^|\D)(\d{1,2})(?:st|nd|rd|th)?$/i)
+    const dayAfter = afterMonth.match(/^(\d{1,2})(?:st|nd|rd|th)?\b/i)
+    const yearMatch = readable.match(/\b((?:19|20)\d{2})\b/)
+
+    return {
+      month,
+      day: Number(dayBefore?.[1] ?? dayAfter?.[1] ?? 0),
+      year: Number(yearMatch?.[1] ?? 0),
+    }
+  }
+
+  const yearFirst = readable.match(/^((?:19|20)\d{2})[-/.](\d{1,2})[-/.](\d{1,2})$/)
+  if (yearFirst) {
+    return { month: Number(yearFirst[2]), day: Number(yearFirst[3]), year: Number(yearFirst[1]) }
+  }
+
+  const dayFirst = readable.match(/^(\d{1,2})[-/.](\d{1,2})[-/.]((?:19|20)\d{2})$/)
+  if (dayFirst) {
+    return { month: Number(dayFirst[2]), day: Number(dayFirst[1]), year: Number(dayFirst[3]) }
+  }
+
+  const standaloneYear = readable.match(/^((?:19|20)\d{2})$/)
+  return { month: 13, day: 0, year: Number(standaloneYear?.[1] ?? 0) }
+}
+
+export function compareDateValues(left: string, right: string): number {
+  const leftParts = getDateSortParts(left)
+  const rightParts = getDateSortParts(right)
+
+  return leftParts.month - rightParts.month
+    || leftParts.day - rightParts.day
+    || leftParts.year - rightParts.year
+    || left.localeCompare(right, 'en-US', { numeric: true, sensitivity: 'base' })
+}
 
 interface MatchRange {
   start: number
   end: number
   value: string
+}
+
+function isLikelyStandaloneMay(html: string, start: number, end: number): boolean {
+  const before = htmlToReadableText(html.slice(Math.max(0, start - 160), start))
+  const afterSource = html.slice(end, end + 160)
+  const after = htmlToReadableText(afterSource)
+  const hasMonthCueBefore = /(?:^|\b)(?:in|by|until|through|during|since|from|for|this|next|last)\s*$/i.test(before)
+  const hasMonthCueAfter = /^(?:through|to)\b/i.test(after)
+  const endsAsValue = after.length === 0 || /^[,.;:!?()[\]–—-]/.test(after)
+  const closesStandaloneBlock = /^\s*<\/(?:p|div|h[1-6]|td|th|li)\b/i.test(afterSource)
+
+  return hasMonthCueBefore || hasMonthCueAfter || endsAsValue || closesStandaloneBlock
+}
+
+function findDateRanges(html: string): MatchRange[] {
+  const ranges: MatchRange[] = []
+
+  for (const pattern of DATE_PATTERNS) {
+    pattern.lastIndex = 0
+    for (const match of html.matchAll(pattern)) {
+      const start = match.index
+      const end = start + match[0].length
+      if (pattern === STANDALONE_MAY_PATTERN && !isLikelyStandaloneMay(html, start, end)) continue
+      if (ranges.some((range) => start < range.end && end > range.start)) continue
+      ranges.push({ start, end, value: match[0] })
+    }
+  }
+
+  return ranges.sort((left, right) => left.start - right.start)
 }
 
 const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -118,22 +221,9 @@ export function getDateContexts(html: string, dateValue: string): DateContext[] 
 }
 
 export function detectDates(html: string): DetectedDate[] {
-  const ranges: MatchRange[] = []
-
-  for (const pattern of DATE_PATTERNS) {
-    pattern.lastIndex = 0
-    for (const match of html.matchAll(pattern)) {
-      const start = match.index
-      const end = start + match[0].length
-      if (ranges.some((range) => start < range.end && end > range.start)) continue
-      ranges.push({ start, end, value: match[0] })
-    }
-  }
-
-  ranges.sort((left, right) => left.start - right.start)
   const detected = new Map<string, DetectedDate>()
 
-  for (const range of ranges) {
+  for (const range of findDateRanges(html)) {
     const existing = detected.get(range.value)
     if (existing) existing.count += 1
     else detected.set(range.value, { value: range.value, count: 1 })
@@ -143,18 +233,25 @@ export function detectDates(html: string): DetectedDate[] {
 }
 
 export function replaceDates(html: string, replacements: ReadonlyMap<string, string>): string {
-  const originals = [...replacements]
-    .filter(([original, replacement]) => original && replacement !== original)
-    .map(([original]) => original)
-    .sort((left, right) => right.length - left.length)
+  const ranges = findDateRanges(html)
+  if (ranges.length === 0) return html
 
-  if (originals.length === 0) return html
+  let result = ''
+  let cursor = 0
 
-  const escapedOriginals = originals.map(escapeRegExp)
-  const pattern = new RegExp(escapedOriginals.join('|'), 'g')
-  return html.replace(pattern, (original) => {
-    const replacement = replacements.get(original) ?? original
-    const htmlSpace = original.match(new RegExp(HTML_SPACE_ENTITY_SOURCE, 'i'))?.[0]
-    return htmlSpace ? replacement.replace(/\s+/g, htmlSpace) : replacement
-  })
+  for (const range of ranges) {
+    result += html.slice(cursor, range.start)
+    const replacement = replacements.get(range.value)
+
+    if (replacement === undefined || replacement === range.value) {
+      result += range.value
+    } else {
+      const htmlSpace = range.value.match(new RegExp(HTML_SPACE_ENTITY_SOURCE, 'i'))?.[0]
+      result += htmlSpace ? replacement.replace(/\s+/g, htmlSpace) : replacement
+    }
+
+    cursor = range.end
+  }
+
+  return result + html.slice(cursor)
 }

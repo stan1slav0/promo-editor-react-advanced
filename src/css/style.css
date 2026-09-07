@@ -1370,7 +1370,7 @@ input[type=number] {
   align-items: center;
   gap: 6px;
 }
-.dates-sidebar-group__review {
+.dates-sidebar-group__review, .dates-sidebar-group__image {
   padding: 4px 6px;
   border-radius: 6px;
   color: rgba(255, 203, 129, 0.96);
@@ -1716,7 +1716,7 @@ input[type=number] {
   align-items: center;
   gap: 8px;
 }
-.dates-result-card__review {
+.dates-result-card__review, .dates-result-card__image {
   color: rgba(255, 203, 129, 0.92);
   font-weight: 680;
 }

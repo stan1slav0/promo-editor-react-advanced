@@ -5,6 +5,8 @@ import { saveAs } from 'file-saver'
 import JSZip from 'jszip'
 import { toast } from 'react-toastify'
 import {
+  compareDateValues,
+  countHtmlImages,
   detectDates,
   getDateContexts,
   getDateGroupName,
@@ -29,6 +31,7 @@ interface AnalyzedFile {
   content: string
   dates: DetectedDate[]
   dateContexts: Record<string, DateContext[]>
+  imageCount: number
 }
 
 interface AggregatedDate {
@@ -44,6 +47,7 @@ interface FileGroup {
   files: AnalyzedFile[]
   dates: AggregatedDate[]
   reviewCount: number
+  imageCount: number
 }
 
 const isHtmlFile = (file: File) => /\.html?$/i.test(file.name) || file.type === 'text/html'
@@ -108,6 +112,7 @@ function aggregateDates(files: AnalyzedFile[]): AggregatedDate[] {
   }
 
   return [...aggregated.values()]
+    .sort((left, right) => compareDateValues(left.displayValue, right.displayValue))
 }
 
 function readFileEntry(entry: FileSystemFileEntry): Promise<SelectedFile> {
@@ -334,7 +339,7 @@ export function DatesPanel() {
   }, [])
 
   const groups = useMemo<FileGroup[]>(() => {
-    const grouped = new Map<string, Omit<FileGroup, 'dates' | 'reviewCount'>>()
+    const grouped = new Map<string, Omit<FileGroup, 'dates' | 'reviewCount' | 'imageCount'>>()
 
     for (const file of files) {
       const id = file.groupName.toLocaleLowerCase('en-US')
@@ -351,14 +356,15 @@ export function DatesPanel() {
           files: sortedFiles,
           dates: aggregateDates(sortedFiles),
           reviewCount: sortedFiles.filter((file) => file.dates.length === 0).length,
+          imageCount: sortedFiles.reduce((total, file) => total + file.imageCount, 0),
         }
       })
       .sort((left, right) => naturalCompare(left.name, right.name))
   }, [files])
 
   const aggregatedDates = useMemo(() => aggregateDates(files), [files])
-  const filesWithoutDates = useMemo(
-    () => files.filter((file) => file.dates.length === 0),
+  const filesNeedingReview = useMemo(
+    () => files.filter((file) => file.dates.length === 0 || file.imageCount > 0),
     [files],
   )
 
@@ -403,6 +409,7 @@ export function DatesPanel() {
           content,
           dates,
           dateContexts,
+          imageCount: countHtmlImages(content),
         }
       }))
 
@@ -643,9 +650,9 @@ export function DatesPanel() {
             <div className="dates-file-list__summary">
               <span className="dates-file-list__stats">
                 <span>{files.length} {files.length === 1 ? 'file' : 'files'} · {groups.length} {groups.length === 1 ? 'group' : 'groups'}</span>
-                {filesWithoutDates.length > 0 && (
+                {filesNeedingReview.length > 0 && (
                   <strong className="dates-review-summary">
-                    {filesWithoutDates.length} need review
+                    {filesNeedingReview.length} need review
                   </strong>
                 )}
               </span>
@@ -654,8 +661,9 @@ export function DatesPanel() {
             <div className="dates-sidebar-scroll">
               {groups.map((group) => (
                 <div
-                  className={`dates-sidebar-group ${group.reviewCount > 0 ? 'has-review' : ''} ${expandedSidebarGroups[group.id] ? 'is-expanded' : 'is-collapsed'}`}
+                  className={`dates-sidebar-group ${group.reviewCount > 0 || group.imageCount > 0 ? 'has-review' : ''} ${expandedSidebarGroups[group.id] ? 'is-expanded' : 'is-collapsed'}`}
                   key={group.id}
+                  title={group.imageCount > 0 ? 'This group contains images that may include a date.' : undefined}
                 >
                   <div
                     className="dates-sidebar-group__name"
@@ -677,6 +685,9 @@ export function DatesPanel() {
                   >
                     <span>{group.name}</span>
                     <span className="dates-sidebar-group__meta">
+                      {group.imageCount > 0 && (
+                        <strong className="dates-sidebar-group__image">Images {group.imageCount}</strong>
+                      )}
                       {group.reviewCount > 0 && (
                         <strong className="dates-sidebar-group__review">Review {group.reviewCount}</strong>
                       )}
@@ -803,7 +814,7 @@ export function DatesPanel() {
             <div className="dates-groups-scroll">
               {groups.map((group) => (
                 <article
-                  className={`dates-result-card ${group.reviewCount > 0 ? 'has-review' : ''} ${expandedGroups[group.id] ? 'is-expanded' : 'is-collapsed'}`}
+                  className={`dates-result-card ${group.reviewCount > 0 || group.imageCount > 0 ? 'has-review' : ''} ${expandedGroups[group.id] ? 'is-expanded' : 'is-collapsed'}`}
                   key={group.id}
                 >
                   <header
@@ -829,6 +840,9 @@ export function DatesPanel() {
                       <h3>{group.name}</h3>
                       <span>
                         {group.files.length} linked {group.files.length === 1 ? 'file' : 'files'} · {group.dates.length} unique dates
+                        {group.imageCount > 0 && (
+                          <strong className="dates-result-card__image"> · {group.imageCount} {group.imageCount === 1 ? 'image' : 'images'} to check</strong>
+                        )}
                         {group.reviewCount > 0 && (
                           <strong className="dates-result-card__review"> · {group.reviewCount} need review</strong>
                         )}

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
+  compareDateValues,
+  countHtmlImages,
   detectDates,
   getDateContexts,
   getDateGroupName,
@@ -64,6 +66,93 @@ describe('detectDates', () => {
       { value: 'August 19, 2026', count: 1 },
     ])
   })
+
+  it('detects standalone month names, abbreviations, and years', () => {
+    expect(detectDates('The next campaign starts in September. Preview: Sep. Copyright 2027.')).toEqual([
+      { value: 'September', count: 1 },
+      { value: 'Sep.', count: 1 },
+      { value: '2027', count: 1 },
+    ])
+  })
+
+  it('uses context to distinguish the standalone month May from ordinary English', () => {
+    const html = '<p>Available in May.</p><h2>May</h2><p>May be extended, and users may maybe qualify.</p>'
+
+    expect(detectDates(html)).toEqual([
+      { value: 'May', count: 2 },
+    ])
+  })
+
+  it('still detects complete May dates regardless of casing', () => {
+    expect(detectDates('may 12 / MAY 2027')).toEqual([
+      { value: 'may 12', count: 1 },
+      { value: 'MAY 2027', count: 1 },
+    ])
+  })
+
+  it('does not double-detect standalone parts inside longer dates', () => {
+    expect(detectDates('September 12th, 2026 / August 2027')).toEqual([
+      { value: 'September 12th, 2026', count: 1 },
+      { value: 'August 2027', count: 1 },
+    ])
+  })
+
+  it('detects an ordinal date followed by an empty superscript tag', () => {
+    expect(detectDates('Offer ends September 12th<sup></sup>.')).toEqual([
+      { value: 'September 12th', count: 1 },
+    ])
+  })
+
+  it('keeps similar short, ordinal, and year dates as separate values', () => {
+    expect(detectDates('November 30 / November 30th / November 30, 2026')).toEqual([
+      { value: 'November 30', count: 1 },
+      { value: 'November 30th', count: 1 },
+      { value: 'November 30, 2026', count: 1 },
+    ])
+  })
+})
+
+describe('countHtmlImages', () => {
+  it('counts HTML and MJML image elements', () => {
+    expect(countHtmlImages('<img src="banner.jpg"><mj-image src="hero.jpg" /><p>No image here</p>')).toBe(2)
+  })
+
+  it('does not count image-like text without an element', () => {
+    expect(countHtmlImages('<p>img and mj-image</p>')).toBe(0)
+  })
+})
+
+describe('compareDateValues', () => {
+  it('sorts named and numeric dates from January through December', () => {
+    const dates = [
+      'December 3',
+      '2026-02-14',
+      'August 2026',
+      'January 20',
+      'January 2',
+      '18/09/2026',
+      'March',
+    ]
+
+    expect(dates.sort(compareDateValues)).toEqual([
+      'January 2',
+      'January 20',
+      '2026-02-14',
+      'March',
+      'August 2026',
+      '18/09/2026',
+      'December 3',
+    ])
+  })
+
+  it('places standalone years after dates containing a month', () => {
+    expect(['2027', 'November', '2026', 'April'].sort(compareDateValues)).toEqual([
+      'April',
+      'November',
+      '2026',
+      '2027',
+    ])
+  })
 })
 
 describe('getDateContexts', () => {
@@ -115,5 +204,25 @@ describe('replaceDates', () => {
 
     expect(replaceDates('<p>September&nbsp;19</p>', replacements))
       .toBe('<p>October&nbsp;3</p>')
+  })
+
+  it('replaces a short date only when it is a complete detected value', () => {
+    const html = 'November 30 / November 30th / November 30, 2026 / November 30'
+    const replacements = new Map([['November 30', 'April 30']])
+
+    expect(replaceDates(html, replacements))
+      .toBe('April 30 / November 30th / November 30, 2026 / April 30')
+  })
+
+  it('keeps each similar date independently replaceable', () => {
+    const html = 'November 30 / November 30th / November 30, 2026'
+    const replacements = new Map([
+      ['November 30', 'April 30'],
+      ['November 30th', 'May 31st'],
+      ['November 30, 2026', 'June 1, 2027'],
+    ])
+
+    expect(replaceDates(html, replacements))
+      .toBe('April 30 / May 31st / June 1, 2027')
   })
 })
