@@ -259,11 +259,13 @@ function DateFilesTooltip({
   files,
   replacements,
   groupOverrides,
+  onPreviewFile,
 }: {
   date: AggregatedDate
   files: AnalyzedFile[]
   replacements: Record<string, string>
   groupOverrides: Record<string, Record<string, string>>
+  onPreviewFile: (file: AnalyzedFile) => void
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [position, setPosition] = useState<{ left: number; top: number; width: number } | null>(null)
@@ -386,7 +388,23 @@ function DateFilesTooltip({
                       || replacements[date.key]
                       || date.displayValue
                     return (
-                      <div className="dates-files-popover__file" key={file.id}>
+                      <div
+                        className="dates-files-popover__file"
+                        key={file.id}
+                        role="button"
+                        tabIndex={0}
+                        title={`Open ${file.name} in a new tab`}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          onPreviewFile(file)
+                        }}
+                        onKeyDown={(event) => {
+                          if (event.key !== 'Enter' && event.key !== ' ') return
+                          event.preventDefault()
+                          event.stopPropagation()
+                          onPreviewFile(file)
+                        }}
+                      >
                         <span className={`dates-files-popover__type dates-files-popover__type_${getVariantLabel(file.name).toLowerCase()}`}>
                           {getVariantLabel(file.name)}
                         </span>
@@ -405,6 +423,11 @@ function DateFilesTooltip({
                           </span>
                         </span>
                         <span className="dates-files-popover__count">×{occurrenceCount}</span>
+                        <span className="dates-files-popover__open" aria-hidden="true">
+                          <svg viewBox="0 0 16 16">
+                            <path d="M6.5 3.5h6v6M12.2 3.8 6.8 9.2M11.5 10.5v1a1 1 0 0 1-1 1h-7v-7a1 1 0 0 1 1-1h1" />
+                          </svg>
+                        </span>
                       </div>
                     )
                   })}
@@ -916,6 +939,7 @@ export function DatesPanel() {
                           files={files}
                           replacements={replacements}
                           groupOverrides={groupOverrides}
+                          onPreviewFile={previewFile}
                         />
                       </span>
                       <span className="dates-arrow" aria-hidden="true">→</span>

@@ -2312,13 +2312,26 @@ input[type=number] {
 
   &__file {
     display: grid;
-    grid-template-columns: 42px minmax(0, 1fr) auto;
+    grid-template-columns: 42px minmax(0, 1fr) auto 24px;
     min-height: 50px;
     padding: 8px 9px;
     align-items: start;
     gap: 10px;
     border-radius: 10px;
     background: rgba(255, 255, 255, .035);
+    outline: 0;
+    cursor: pointer;
+    transition: background .18s ease, box-shadow .18s ease, transform .18s ease;
+
+    &:hover,
+    &:focus-visible {
+      background: rgba(107, 248, 249, .065);
+      box-shadow: inset 0 0 0 1px rgba(107, 248, 249, .15);
+    }
+
+    &:active {
+      transform: scale(.995);
+    }
 
     >.dates-files-popover__type,
     >.dates-files-popover__count {
@@ -2394,6 +2407,26 @@ input[type=number] {
     background: rgba(222, 70, 212, .075);
     font-size: 10px;
     font-weight: 680;
+  }
+
+  &__open {
+    display: grid;
+    width: 24px;
+    height: 24px;
+    margin-top: 2px;
+    place-items: center;
+    border-radius: 7px;
+    color: rgba(107, 248, 249, .58);
+    background: rgba(107, 248, 249, .065);
+
+    svg {
+      width: 13px;
+      fill: none;
+      stroke: currentColor;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 1.35;
+    }
   }
 }
 
