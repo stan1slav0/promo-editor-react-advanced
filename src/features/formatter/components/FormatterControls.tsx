@@ -31,15 +31,14 @@ export function FormatterControls({
 }: FormatterControlsProps) {
   return (
     <div className="main-input-number-block">
-      {mode === 'dates' ? (
-        <div className="dates-mode-badge" role="status" aria-label="Dates Changes">
+      {mode === 'dates' || mode === 'imageDates' ? (
+        <div className="dates-mode-badge" role="status" aria-label={mode === 'dates' ? 'Dates Changes' : 'Text on Images Beta'}>
           <span className="dates-mode-badge__icon" aria-hidden="true">
             <svg viewBox="0 0 24 24">
-              <path d="M7 3v3m10-3v3M4.5 9h15M6 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" />
-              <path d="m9 14 2-2 2 2 2-2" />
+              {mode === 'dates' ? <><path d="M7 3v3m10-3v3M4.5 9h15M6 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" /><path d="m9 14 2-2 2 2 2-2" /></> : <><path d="M4 6h16M12 6v13M8.5 19h7" /><path d="M3 3h18v18H3z" /></>}
             </svg>
           </span>
-          <span className="dates-mode-badge__label">Dates Changes</span>
+          <span className="dates-mode-badge__label">{mode === 'dates' ? 'Dates Changes' : 'Text on Images · Beta'}</span>
         </div>
       ) : (
       <div className="input-name-block">
@@ -78,22 +77,24 @@ export function FormatterControls({
         role="group"
         aria-label="Conversion mode"
       >
-        {(['basic', 'advanced', 'dates'] as const).map((item) => (
+        {(['basic', 'advanced', 'dates', 'imageDates'] as const).map((item) => (
           <Fragment key={item}>
             {item === 'dates' && <span className="mode-switch__separator" aria-hidden="true" />}
             <button
               type="button"
               className={`main-btn main-btn_noicon category-wrap__link ${mode === item ? '_active' : ''}`}
               aria-pressed={mode === item}
+              aria-label={item === 'imageDates' ? 'Text on images (Beta)' : undefined}
               onClick={() => onModeChange(item)}
             >
-              <span>{item === 'basic' ? 'Basic' : item === 'advanced' ? 'Custom' : 'Dates'}</span>
+              <span>{item === 'basic' ? 'Basic' : item === 'advanced' ? 'Custom' : item === 'dates' ? 'Dates' : 'Text on images'}</span>
+              {item === 'imageDates' && <span className="mode-switch__beta" aria-hidden="true">Beta</span>}
             </button>
           </Fragment>
         ))}
       </div>
 
-      {mode !== 'dates' && showCategories && availableCategories.length > 1 && (
+      {mode !== 'dates' && mode !== 'imageDates' && showCategories && availableCategories.length > 1 && (
         <div
           className={`category-wrap category-switch category-switch_pos-${activeCategoryIndex} _show`}
           role="group"

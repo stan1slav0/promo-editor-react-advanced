@@ -24,7 +24,7 @@ export default function App() {
         <AppHeader
           isS3Enabled={isS3Enabled}
           onS3ToggleChange={changeS3Enabled}
-          hideStorageMode={formatterMode === 'dates'}
+          hideStorageMode={formatterMode === 'dates' || formatterMode === 'imageDates'}
         />
         <AppRoutes
           activeCategory={activeCategory}

@@ -4,6 +4,8 @@ import { toast } from 'react-toastify'
 
 import { getConverter } from '../../converters'
 import { DatesPanel } from '../dates/DatesPanel'
+import { ImageDatesBetaNotice } from '../imageDates/ImageDatesBetaNotice'
+import { ImageDatesPanel } from '../imageDates/ImageDatesPanel'
 import { DownloadActions } from './components/DownloadActions'
 import { EditorPanel } from './components/EditorPanel'
 import { FormatterControls } from './components/FormatterControls'
@@ -35,7 +37,7 @@ export default function Formatter({
   const isFirstS3RenderRef = useRef(true)
   const previousS3EnabledRef = useRef(isS3Enabled)
 
-  const conversionMode = mode === 'dates' ? 'basic' : mode
+  const conversionMode = mode === 'dates' || mode === 'imageDates' ? 'basic' : mode
   const activeConverter = getConverter(conversionMode, activeCategory) as FormatterConverter
   const supportsMJML = activeConverter.hasMJML !== false
   const activeCategoryIndex = Math.max(
@@ -133,7 +135,7 @@ export default function Formatter({
   const handleModeChange = useCallback((nextMode: FormatterMode) => {
     onModeChange(nextMode)
     toast.info(
-      <span><strong>{nextMode === 'basic' ? 'Basic' : nextMode === 'advanced' ? 'Custom' : 'Dates'}</strong> Mode</span>,
+      <span><strong>{nextMode === 'basic' ? 'Basic' : nextMode === 'advanced' ? 'Custom' : nextMode === 'dates' ? 'Dates' : 'Text on images'}</strong> Mode</span>,
       { autoClose: 1500, hideProgressBar: true, closeButton: false },
     )
   }, [onModeChange])
@@ -204,7 +206,7 @@ export default function Formatter({
   }, [cancelImageExport, clearOutputs, dismissS3Toast, resetImageState])
 
   useFormatterShortcuts({
-    enabled: mode !== 'dates',
+    enabled: mode !== 'dates' && mode !== 'imageDates',
     activeCategory,
     isAnalyzing,
     onDownloadAll: () => void handleDownloadAll(),
@@ -230,7 +232,7 @@ export default function Formatter({
         />
 
         <div className={`formatter-mode-stage formatter-mode-stage_${mode}`}>
-          {mode === 'dates' ? <DatesPanel /> : <div className="flex-cols flex-cols_cat">
+          {mode === 'dates' ? <DatesPanel /> : mode === 'imageDates' ? <ImageDatesBetaNotice><ImageDatesPanel /></ImageDatesBetaNotice> : <div className="flex-cols flex-cols_cat">
             <EditorPanel
               editorRef={editorRef as ScrollableRef}
               onPaste={handlePaste}

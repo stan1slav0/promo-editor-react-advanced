@@ -4,7 +4,7 @@ const STORAGE_KEY_MODE = 'conversionMode'
 
 export function getSavedMode(): FormatterMode {
   const savedMode = localStorage.getItem(STORAGE_KEY_MODE)
-  return savedMode === 'advanced' || savedMode === 'basic' || savedMode === 'dates'
+  return savedMode === 'advanced' || savedMode === 'basic' || savedMode === 'dates' || savedMode === 'imageDates'
     ? savedMode
     : 'basic'
 }
